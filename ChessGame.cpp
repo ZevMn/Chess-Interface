@@ -31,6 +31,7 @@ void ChessGame::loadState(const char * fenString) {
         else if (current_character > '0' && current_character < '9') { // Insert 'X' for each empty square
             for (int empty = 0; empty < (current_character - '0'); empty++) {
                 chess_board[rank][file] = 'X';
+                //chess_board[rank][file] = NULL;
                 file++;
             }
         }

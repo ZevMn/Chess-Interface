@@ -4,7 +4,6 @@
 #define CHESSGAME_H
 
 #include "ChessPiece.h"
-#include <string>
 
 const int ranks = 8, files = 8;
 
@@ -16,6 +15,7 @@ class ChessGame {
 
     private:
         char chess_board[ranks][files];
+        // ChessPiece* chess_board[ranks][files];
         bool white_to_play;
 
         bool checkMoveValid();
