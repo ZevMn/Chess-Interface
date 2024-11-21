@@ -1,8 +1,11 @@
+.vscode
 ChessMainBackup.cpp
-main.o
-chessgame.o
-chesspiece.o
-ChessPiece.h
-ChessPiece.cpp
-ChessGame.h
-ChessGame.cpp
+ChessMain.o
+ChessGame.o
+ChessPiece.o
+# ChessPiece.h
+# ChessPiece.cpp
+# ChessGame.h
+# ChessGame.cpp
+test
+test.cpp

@@ -1,6 +1,6 @@
 #include"ChessGame.h"
 
-#include<iostream>
+#include <iostream>
 
 using std::cout;
 
