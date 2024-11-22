@@ -4,25 +4,31 @@
 #define CHESSGAME_H
 
 #include "ChessPiece.h"
+#include <string>
 
 const int ranks = 8, files = 8;
 
 class ChessGame {
 
     public:
-        void loadState(const char * fenString);
-        void submitMove(const char *, const char *);
+        ChessPiece* chessBoard[ranks][files];
+
+        //void createPieces();
+        void loadState(const char * fenString); //DONE FOR NOW
+        void submitMove(const char * coord1, const char * coord2);
+        ChessPiece* getPiece(string destination);
 
     private:
-        char chess_board[ranks][files];
-        // ChessPiece* chess_board[ranks][files];
-        bool white_to_play;
+        //IGNORE: char chess_board[ranks][files];
+        bool whiteToPlay;
+        bool whiteInCheck = false;
+        bool blackInCheck = false;
 
-        bool checkMoveValid();
-
-        // std::map<const char *, char> chess_board;
-        // chess_board["A1"] = 'N';
-        // chess_board["A2"] = 'N';
+        ChessPiece* createChessPiece(char abbrName); //DONE
+        int* coordToIndex(const char * coord);
+        bool checkMoveValid(int * initCoord, int * destCoord);
+        void outputMove();
+        void deletePiece(ChessPiece* pieceToDelete);
 };
 
 #endif
