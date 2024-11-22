@@ -6,38 +6,6 @@
 
 using namespace std;
 
-// void ChessGame::createPieces() {
-//     // Store the pieces (on the heap) as pointers inside an array
-//     // Delete the pieces when they are removed from the board
-//     // KEY: Pawns {0,...,7}; Rooks {8,9}; Knights {10,11}; Bishops {12,13}; Queen {14}; King {15}
-
-//     ChessPiece* chessPieceArray[2][16]; // white = 0, black = 1
-//     for (int i=0; i < 8; i++) {
-//         chessPieceArray[white][i] = new Pawn;
-//         chessPieceArray[black][i] = new Pawn;
-//     }
-    
-//     chessPieceArray[white][8] = new Rook;
-//     chessPieceArray[black][8] = new Rook;
-//     chessPieceArray[white][9] = new Rook;
-//     chessPieceArray[black][9] = new Rook;
-
-//     chessPieceArray[white][10] = new Knight;
-//     chessPieceArray[black][10] = new Knight;
-//     chessPieceArray[white][11] = new Knight;
-//     chessPieceArray[black][11] = new Knight;
-
-//     chessPieceArray[white][12] = new Bishop;
-//     chessPieceArray[black][12] = new Bishop;
-//     chessPieceArray[white][13] = new Bishop;
-//     chessPieceArray[black][13] = new Bishop;
-
-//     chessPieceArray[white][14] = new Queen;
-//     chessPieceArray[black][14] = new Queen;
-//     chessPieceArray[white][15] = new King;
-//     chessPieceArray[black][15] = new King;
-// }
-
 void ChessGame::loadState(const char * fenString) {
     cout << "A new board is loaded!\n\n";
 
@@ -80,10 +48,10 @@ void ChessGame::loadState(const char * fenString) {
     /* PART 2: ACTIVE COLOUR */
     i++;
     if (fenString[i] == 'w') {
-        whiteToPlay = true;
+        turn = whiteTurn;
     }
     else {
-        whiteToPlay = false;
+        turn = blackTurn;
     }
 
     // Leave part 3+ for now
@@ -98,17 +66,8 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
     int* originCoord = coordToIndex(coord1);
     int* destinationCoord = coordToIndex(coord2);
 
-    ChessPiece* ptrAtOrigin = chessBoard[originCoord[0]][originCoord[1]];
-    ChessPiece* ptrAtDestination = chessBoard[destinationCoord[0]][destinationCoord[1]];
-
     if (checkMoveValid(originCoord, destinationCoord)) {
-        outputMove();
-
-        if (ptrAtDestination != nullptr) {
-            deletePiece(ptrAtDestination);
-        }
-        ptrAtDestination = ptrAtOrigin;
-        ptrAtOrigin = nullptr;
+        makeMove(originCoord, destinationCoord);
     }
     else {
         cout << "move is not valid\n";
@@ -121,62 +80,95 @@ ChessPiece* ChessGame::createChessPiece(char abbrName) {
 
     switch(abbrName) {
         case 'p':
+            newPiece = new Pawn(black);
+            break;
         case 'P':
-            newPiece = new Pawn;
+            newPiece = new Pawn(white);
             break;
         case 'r':
+            newPiece = new Rook(black);
+            break;
         case 'R':
-            newPiece = new Rook;
+            newPiece = new Rook(white);
             break;
         case 'n':
+            newPiece = new Knight(black);
+            break;
         case 'N':
-            newPiece = new Knight;
+            newPiece = new Knight(white);
             break;
         case 'b':
+            newPiece = new Bishop(black);
+            break;
         case 'B':
-            newPiece = new Bishop;
+            newPiece = new Bishop(white);
             break;
         case 'q':
+            newPiece = new Queen(black);
+            break;
         case 'Q':
-            newPiece = new Queen;
+            newPiece = new Queen(white);
             break;
         case 'k':
+            newPiece = new King(black);
+            break;
         case 'K':
-            newPiece = new King;
+            newPiece = new King(white);
             break;
         default:
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
             exit(1);
-    }
-    
-    if (abbrName > 'a' && abbrName < 's') {
-        newPiece->setColour(white);
-    }
-    else {
-        newPiece->setColour(black);
-    }
 
     return newPiece;
 }
 
-bool ChessGame::checkMoveValid() {
+bool ChessGame::checkMoveValid(const int * initCoord, const int * destCoord) {
+
     // ARE THE COORDINATES VALID
-    // IS THE PIECE MOVING
-    // NO SAME COLOUR PIECE AT DESTINATION
-    ChessPiece* pieceAtDestination = getPiece(destination);
+    for (int i=0; i<2; i++) {
+        if (initCoord[i] < 0 || initCoord[i] > 7 || destCoord[i] < 0 || destCoord[i] > 7) {
+            cout << "ERROR: Cannot make move - invalid coordinatesm\n";
+            return false;
+        }
+    }
+
+    // IS THERE A PIECE OF CORRECT COLOUR TO MOVE
+    ChessPiece* pieceAtOrigin = getPiece(initCoord);
+    if (pieceAtOrigin == nullptr || pieceAtOrigin->colour != turn) {
+        cout << "ERROR: Cannot make move - you have not selected a valid piece to movem\n";
+        return false;
+    }
+
+    // IS THE PIECE ACTUALLY MOVING
+    if (initCoord[0] == destCoord[0] && initCoord[1] == destCoord[1]) {
+        cout << "ERROR: Cannot make move - piece must move from current squarem\n";
+        return false;
+    }
+
+    // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
+    ChessPiece* pieceAtDestination = getPiece(destCoord);
     if (pieceAtDestination != NULL && pieceAtDestination->colour != colour) {
+        cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
         return false;
     }
 
     // NOT IN CHECK
-    return whiteToPlay ? !whiteInCheck : !blackInCheck;
+    if ((turn == whiteTurn && whiteInCheck) || (turn == blackTurn && blackInCheck)) {
+        cout << "ERROR: Cannot make move - you are in check.\n";
+        return false;
+    }
 
     // NO PIECE IN THE WAY (IF NOT KNIGHT)
+    if (pieceAtOrigin->type != knight) {
+        // Implement logic to check if there is a piece in the way as an overloaded ChessPiece::pieceInTheWay() function
+    }
+
     // NOT MOVING INTO CHECK
-    return true; // ADD LOGIC HERE
+    
+    return pieceAtOrigin->isValidMovePattern(initCoord, destCoord);
 }
 
-int* coordToIndex(const char * coord) {
+int* ChessGame::coordToIndex(const char * coord) {
 
     int* indexArray = new int[2];
 
@@ -186,6 +178,18 @@ int* coordToIndex(const char * coord) {
     return indexArray; // REMEMBER TO DELETE
 }
 
-bool checkMoveValid(int * initCoord, int * destCoord) {
+ChessPiece* ChessGame::getPiece(const int* coordinate) {
+    return chessBoard[coordinate[0]][coordinate[1]];
+}
 
+void ChessPiece::makeMove(int* initCoord, int* destCoord) {
+
+    ChessPiece* ptrAtOrigin = chessBoard[initCoord[0]][initCoord[1]];
+    ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]];
+
+    if (ptrAtDestination != nullptr) {
+            deletePiece(ptrAtDestination);
+        }
+        ptrAtDestination = ptrAtOrigin;
+        ptrAtOrigin = nullptr;
 }

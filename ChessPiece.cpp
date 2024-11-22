@@ -8,23 +8,21 @@
 using namespace std;
 
 /* CHESS PIECE */
-void ChessPiece::setColour(pieceColour c) {
-    colour = c;
-}
-
 char ChessPiece::getAbbrName() const {
     return abbrName;
 }
 
 /* PAWN */
-bool Pawn::isValidMovePattern(const char* coord1, const char* coord2) const {
+Pawn::Pawn(PieceColour c) : colour(c) {}
 
-    if (coord2[1] == coord1[1]) { // If moving along a rank only
-        if (firstMove && (coord2[0] == coord1[0] + 2)) {
+bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
+
+    if (coords2[1] == coords1[1]) { // If moving along a rank only
+        if (firstMove && (coords2[0] == coords1[0] + 2)) {
             firstMove = false;
             return true;
         }
-        if (coord2[0] == coord1[0] + 1) {
+        if (coords2[0] == coords1[0] + 1) {
             return true;
         }
     }
@@ -32,16 +30,21 @@ bool Pawn::isValidMovePattern(const char* coord1, const char* coord2) const {
 }
 
 // ROOK
-bool Rook::isValidMovePattern(const char* coord1, const char* coord2) const {
+Rook::Rook(PieceColour c) : colour(c) {}
+
+bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (coord2[0] == coord1[0] || coord2[1] == coord1[1]) { // If moving along a rank or a file
-            return true;
+        hasMoved = true;
+        return true;
     }
     return false;
 }
 
 // KNIGHT
-bool Knight::isValidMovePattern(const char* coord1, const char* coord2) const {
+Knight::Knight(PieceColour c) : colour(c) {}
+
+bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if ((abs(coord2[1] - coord1[1]) == 1) && (abs(coord2[0] - coord1[0]) == 2)) {
         return true;
@@ -53,7 +56,9 @@ bool Knight::isValidMovePattern(const char* coord1, const char* coord2) const {
 }
 
 // BISHOP
-bool Bishop::isValidMovePattern(const char* coord1, const char* coord2) const {
+Bishop::Bishop(PieceColour c) : colour(c) {}
+
+bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (abs(coord2[1] - coord1[1]) == abs(coord2[0] - coord1[0])) {
         return true;
@@ -62,10 +67,12 @@ bool Bishop::isValidMovePattern(const char* coord1, const char* coord2) const {
 }
 
 // QUEEN
-bool Queen::isValidMovePattern(const char* coord1, const char* coord2) const {
+Queen::Queen(PieceColour c) : colour(c) {}
+
+bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (coord2[0] == coord1[0] || coord2[1] == coord1[1]) { // Rook logic
-            return true;
+        return true;
     }
     if (abs(coord2[1] - coord1[1]) == abs(coord2[0] - coord1[0])) { // Bishop Logic
         return true;
@@ -75,7 +82,9 @@ bool Queen::isValidMovePattern(const char* coord1, const char* coord2) const {
 }
 
 // KING
-bool King::isValidMovePattern(const char* coord1, const char* coord2) const {
+King::King(PieceColour c) : colour(c) {}
+
+bool King::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if ((abs(coord2[0] - coord1[0]) < 2) && (abs(coord2[1] - coord1[1]) < 2)) {
         return true;

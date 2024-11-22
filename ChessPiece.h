@@ -6,24 +6,24 @@
 #include "ChessGame.h"
 #include <string>
 
-enum pieceColour {white, black};
+enum PieceType {pawn, rook, knight, bishop, queen, king};
+enum PieceColour {white, black};
 
 class ChessPiece {
     // ABSTRACT CLASS
     public:
-        void setColour(pieceColour c);
         char getAbbrName() const;
 
         int rankIndex;
         int fileIndex;
 
-        virtual bool isValidMovePattern(const char* coord1, const char* coord2) const = 0;
+        virtual bool isValidMovePattern(const int* coords1, const int* coords2) const;
 
     protected:
         char abbrName;
-        string fullName;
 
-        pieceColour colour;
+        PieceType type;
+        PieceColour colour;
 
         virtual void makeMove();
         virtual void capture();
@@ -32,39 +32,48 @@ class ChessPiece {
 class Pawn : public ChessPiece {
 
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
-        // promote()
-    private:
+        Pawn(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
         bool firstMove = true;
-        // can_en_passant
+        // bool canEnPassant
+        // promote()
 };
 
 class Rook : public ChessPiece {
 
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
-    // has_moved
+        Rook(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool hasMoved = false;
     // left_rook
 };
 
 class Knight : public ChessPiece {
+
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
+        Knight(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
 class Bishop : public ChessPiece {
+    
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
+        Bishop(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
 class Queen : public ChessPiece {
+
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
+        Queen(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
 class King : public ChessPiece {
+
     public:
-        bool isValidMovePattern(const char* coord1, const char* coord2) const override;
+        King(PieceColour c);
+        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // has_moved
     // in_check
 };
