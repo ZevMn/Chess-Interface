@@ -244,6 +244,12 @@ void ChessGame::makeMove(int* initCoord, int* destCoord) {
     if (ptrAtDestination != nullptr) { // If a capture has occured, delete the piece from memory
             deletePiece(ptrAtDestination);
         }
+
+    modifyAttributes(chessBoard[destCoord[0]][destCoord[1]]);
+}
+
+void modifyAttributes(ChessPiece* movedPiece) {
+        movedPiece->hasMoved = true;
 }
 
 void deletePiece(ChessPiece* pieceToDelete) {

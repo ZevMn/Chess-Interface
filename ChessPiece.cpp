@@ -8,8 +8,7 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : colour(c), type(t), rankIndex(rank), fileIndex(file) {
-}
+ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : colour(c), type(t), rankIndex(rank), fileIndex(file), hasMoved(false) {}
 
 char ChessPiece::getAbbrName() const {
     return abbrName;
@@ -32,15 +31,12 @@ int ChessPiece::getFileIndex() const {
 }
 
 /* PAWN */
-Pawn::Pawn(PieceColour c, int rank, int file) : firstMove(true) {
-    ChessPiece(c, pawn, rank, file);
-}
+Pawn::Pawn(PieceColour c, int rank, int file) : ChessPiece(c, pawn, rank, file) {}
 
 bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
     if (coords2[1] == coords1[1]) { // If moving along a rank only
-        if (firstMove && (coords2[0] == coords1[0] + 2)) {
-            firstMove = false;
+        if (!hasMoved && (coords2[0] == coords1[0] + 2)) {
             return true;
         }
         if (coords2[0] == coords1[0] + 1) {
@@ -51,23 +47,18 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 }
 
 // ROOK
-Rook::Rook(PieceColour c, int rank, int file) : hasMoved(false) {
-    ChessPiece(c, rook, rank, file);
-}
+Rook::Rook(PieceColour c, int rank, int file) : ChessPiece(c, rook, rank, file) {}
 
 bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (coord2[0] == coord1[0] || coord2[1] == coord1[1]) { // If moving along a rank or a file
-        hasMoved = true;
         return true;
     }
     return false;
 }
 
 // KNIGHT
-Knight::Knight(PieceColour c, int rank, int file) : {
-    ChessPiece(c, knight, rank, file);
-}
+Knight::Knight(PieceColour c, int rank, int file) : ChessPiece(c, knight, rank, file) {}
 
 bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -81,9 +72,7 @@ bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // BISHOP
-Bishop::Bishop(PieceColour c, int rank, int file) : {
-    ChessPiece(c, bishop, rank, file);
-}
+Bishop::Bishop(PieceColour c, int rank, int file) : ChessPiece(c, bishop, rank, file) {}
 
 bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -94,9 +83,7 @@ bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // QUEEN
-Queen::Queen(PieceColour c, int rank, int file) : {
-    ChessPiece(c, queen, rank, file);
-}
+Queen::Queen(PieceColour c, int rank, int file) : ChessPiece(c, queen, rank, file) {}
 
 bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -111,9 +98,7 @@ bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // KING
-King::King(PieceColour c, int rank, int file) : {
-    ChessPiece(c, king, rank, file);
-}
+King::King(PieceColour c, int rank, int file) : ChessPiece(c, king, rank, file) {}
 
 bool King::isValidMovePattern(const int* coord1, const int* coord2) const {
 

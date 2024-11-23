@@ -14,6 +14,8 @@ class ChessPiece {
     public:
         ChessPiece(PieceColour c, PieceType t, int rank, int file);
 
+        bool hasMoved;
+
         char getAbbrName() const;
 
         PieceType getType() const;
@@ -40,7 +42,6 @@ class Pawn : public ChessPiece {
         Pawn(PieceColour c, int rank, int file);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
-        bool firstMove;
         // bool canEnPassant
         // promote()
 };
@@ -51,7 +52,6 @@ class Rook : public ChessPiece {
         Rook(PieceColour c, int rank, int file);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
-        bool hasMoved;
     // left_rook
 };
 

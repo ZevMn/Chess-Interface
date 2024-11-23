@@ -29,6 +29,7 @@ class ChessGame {
         int* coordToIndex(const char * coord);
         bool checkMoveValid(const int* initCoord, const int* destCoord);
         void makeMove(int* initCoord, int* destCoord);
+        void modifyAttributes(ChessPiece* movedPiece);
         bool detectCheck(ChessPiece* square);
         ChessPiece* findNearestNeighbour(ChessPiece* square, Directions direction);
         bool detectKnightInRange(ChessPiece* square);
