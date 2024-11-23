@@ -8,12 +8,24 @@
 using namespace std;
 
 /* CHESS PIECE */
+ChessPiece(PieceColour c, PieceType t) : colour(c) type(t) {}
+
 char ChessPiece::getAbbrName() const {
     return abbrName;
 }
 
+PieceType ChessPiece::getType() const {
+    return type;
+}
+
+PieceColour ChessPiece::getColour() const {
+    return colour;
+}
+
 /* PAWN */
-Pawn::Pawn(PieceColour c) : colour(c) {}
+Pawn::Pawn(PieceColour c) : firstMove(true) {
+    ChessPiece(c, pawn);
+}
 
 bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
@@ -30,7 +42,9 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 }
 
 // ROOK
-Rook::Rook(PieceColour c) : colour(c) {}
+Rook::Rook(PieceColour c) : hasMoved(false) {
+    ChessPiece(c, rook);
+}
 
 bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -42,7 +56,9 @@ bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // KNIGHT
-Knight::Knight(PieceColour c) : colour(c) {}
+Knight::Knight(PieceColour c) : {
+    ChessPiece(c, knight);
+}
 
 bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -56,7 +72,9 @@ bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // BISHOP
-Bishop::Bishop(PieceColour c) : colour(c) {}
+Bishop::Bishop(PieceColour c) : {
+    ChessPiece(c, bishop);
+}
 
 bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -67,7 +85,9 @@ bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // QUEEN
-Queen::Queen(PieceColour c) : colour(c) {}
+Queen::Queen(PieceColour c) : {
+    ChessPiece(c, queen);
+}
 
 bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -82,7 +102,9 @@ bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // KING
-King::King(PieceColour c) : colour(c) {}
+King::King(PieceColour c) : {
+    ChessPiece(c, king);
+}
 
 bool King::isValidMovePattern(const int* coord1, const int* coord2) const {
 

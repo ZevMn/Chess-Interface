@@ -8,8 +8,6 @@
 
 const int ranks = 8, files = 8;
 
-enum Turn {whiteTurn, blackTurn};
-
 class ChessGame {
 
     public:
@@ -22,14 +20,15 @@ class ChessGame {
 
     private:
         //IGNORE: char chess_board[ranks][files];
-        Turn turn;
+        PieceColour turn;
         bool whiteInCheck = false;
         bool blackInCheck = false;
 
         ChessPiece* createChessPiece(char abbrName); //DONE
         int* coordToIndex(const char * coord);
-        bool checkMoveValid(const int * initCoord, const int * destCoord);
+        bool checkMoveValid(const int* initCoord, const int* destCoord);
         void makeMove(int* initCoord, int* destCoord);
+        void detectCheck(ChessPiece* square);
         void deletePiece(ChessPiece* pieceToDelete);
 };
 

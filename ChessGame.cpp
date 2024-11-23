@@ -48,10 +48,10 @@ void ChessGame::loadState(const char * fenString) {
     /* PART 2: ACTIVE COLOUR */
     i++;
     if (fenString[i] == 'w') {
-        turn = whiteTurn;
+        turn = white;
     }
     else {
-        turn = blackTurn;
+        turn = black;
     }
 
     // Leave part 3+ for now
@@ -120,9 +120,10 @@ ChessPiece* ChessGame::createChessPiece(char abbrName) {
             exit(1);
 
     return newPiece;
+    }
 }
 
-bool ChessGame::checkMoveValid(const int * initCoord, const int * destCoord) {
+bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
 
     // ARE THE COORDINATES VALID
     for (int i=0; i<2; i++) {
@@ -134,7 +135,7 @@ bool ChessGame::checkMoveValid(const int * initCoord, const int * destCoord) {
 
     // IS THERE A PIECE OF CORRECT COLOUR TO MOVE
     ChessPiece* pieceAtOrigin = getPiece(initCoord);
-    if (pieceAtOrigin == nullptr || pieceAtOrigin->colour != turn) {
+    if (pieceAtOrigin == nullptr || pieceAtOrigin->getColour() != turn) {
         cout << "ERROR: Cannot make move - you have not selected a valid piece to movem\n";
         return false;
     }
@@ -147,20 +148,70 @@ bool ChessGame::checkMoveValid(const int * initCoord, const int * destCoord) {
 
     // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
     ChessPiece* pieceAtDestination = getPiece(destCoord);
-    if (pieceAtDestination != NULL && pieceAtDestination->colour != colour) {
+    if (pieceAtDestination != NULL && pieceAtDestination->getColour() != pieceAtOrigin->getColour()) {
         cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
         return false;
     }
 
     // NOT IN CHECK
-    if ((turn == whiteTurn && whiteInCheck) || (turn == blackTurn && blackInCheck)) {
+    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
         cout << "ERROR: Cannot make move - you are in check.\n";
         return false;
     }
 
     // NO PIECE IN THE WAY (IF NOT KNIGHT)
-    if (pieceAtOrigin->type != knight) {
-        // Implement logic to check if there is a piece in the way as an overloaded ChessPiece::pieceInTheWay() function
+    if (pieceAtOrigin->getType() != knight) {
+        
+        if (initCoord[0] == destCoord[0]) { // If travelling along the same rank
+
+            for (int i=1; i <= abs(destCoord[0]-initCoord[0]);i++) {
+                if ((destCoord[0] > initCoord[0]) && (chessBoard[initCoord[0] + i][initCoord[1]] != nullptr)) {
+                        return false;
+                }
+                else if ((destCoord[0] < initCoord[0]) && (chessBoard[initCoord[0] - i][initCoord[1]] != nullptr)) {
+                        return false;
+                }
+            }
+        }
+
+        else if (initCoord[1] == destCoord[1]) { // If travelling along the same file
+        
+            for (int i=1; i <= abs(destCoord[1]-initCoord[1]);i++) {
+                if ((destCoord[1] > initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] + i] != nullptr)) {
+                        return false;
+                }
+                else if ((destCoord[1] < initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] - i] != nullptr)) {
+                        return false;
+                }
+            }
+        }
+
+        else if (abs(destCoord[0] - initCoord[0]) == abs(destCoord[1] - initCoord[1])) { // If travelling along a diagonal
+
+            for (int i=1; i <= abs(destCoord[0]-initCoord[0]); i++) {
+
+                if ((destCoord[0] > initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (+,+)
+                    if (chessBoard[initCoord[0]+i][initCoord[1]+i] != nullptr) {
+                        return false;
+                    }
+                }
+                if ((destCoord[0] < initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (-,-)
+                    if (chessBoard[initCoord[0]-i][initCoord[1]-i] != nullptr) {
+                        return false;
+                    }
+                }
+                if ((destCoord[0] > initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (+,-)
+                    if (chessBoard[initCoord[0]+i][initCoord[1]-i] != nullptr) {
+                        return false;
+                    }
+                }
+                if ((destCoord[0] < initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (-,+)
+                    if (chessBoard[initCoord[0]-i][initCoord[1]+i] != nullptr) {
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
     // NOT MOVING INTO CHECK
@@ -170,19 +221,21 @@ bool ChessGame::checkMoveValid(const int * initCoord, const int * destCoord) {
 
 int* ChessGame::coordToIndex(const char * coord) {
 
-    int* indexArray = new int[2];
+    int indexArray[2];
+
+    //int* indexArray = new int[2];
 
     indexArray[0] = coord[0] - 'A';
     indexArray[1] = coord[1] - '1';
 
-    return indexArray; // REMEMBER TO DELETE
+    return indexArray;
 }
 
 ChessPiece* ChessGame::getPiece(const int* coordinate) {
     return chessBoard[coordinate[0]][coordinate[1]];
 }
 
-void ChessPiece::makeMove(int* initCoord, int* destCoord) {
+void ChessGame::makeMove(int* initCoord, int* destCoord) {
 
     ChessPiece* ptrAtOrigin = chessBoard[initCoord[0]][initCoord[1]];
     ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]];
@@ -192,4 +245,18 @@ void ChessPiece::makeMove(int* initCoord, int* destCoord) {
         }
         ptrAtDestination = ptrAtOrigin;
         ptrAtOrigin = nullptr;
+}
+
+void deletePiece(ChessPiece* pieceToDelete) {
+    delete pieceToDelete;
+}
+
+void ChessGame::detectCheck(ChessPiece* square) {
+    // @param sqaure Item in chessBoard
+    // If rook sees square along file or rank -> oppositeColourInCheck = true
+    // If bishop sees square along diagonal -> oppositeColourInCheck = true
+    // If queen sees square along file, rank or diagonal -> oppositeColourInCheck = true
+    // If King within one square in any direction -> oppositeColourInCheck = true
+    // If pawn diagonally adjacent -> If pawn validMove -> oppositeColourInCheck
+    // If knight within (+-1, +-2) or (+-2,+-1) -> oppositeColourInCheck
 }

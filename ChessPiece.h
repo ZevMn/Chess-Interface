@@ -12,10 +12,14 @@ enum PieceColour {white, black};
 class ChessPiece {
     // ABSTRACT CLASS
     public:
-        char getAbbrName() const;
+        ChessPiece(PieceColour c, PieceType t);
 
-        int rankIndex;
-        int fileIndex;
+        char getAbbrName() const;
+        PieceType getType() const;
+        PieceColour getColour() const;
+
+        //int rankIndex;
+        //int fileIndex;
 
         virtual bool isValidMovePattern(const int* coords1, const int* coords2) const;
 
@@ -34,7 +38,7 @@ class Pawn : public ChessPiece {
     public:
         Pawn(PieceColour c);
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
-        bool firstMove = true;
+        bool firstMove;
         // bool canEnPassant
         // promote()
 };
@@ -44,7 +48,7 @@ class Rook : public ChessPiece {
     public:
         Rook(PieceColour c);
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
-        bool hasMoved = false;
+        bool hasMoved;
     // left_rook
 };
 
