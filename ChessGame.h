@@ -15,13 +15,14 @@ class ChessGame {
     public:
         ChessPiece* chessBoard[ranks][files];
 
-        //void createPieces();
-        void loadState(const char * fenString); //DONE FOR NOW
+        void loadState(const char * fenString);
         void submitMove(const char * coord1, const char * coord2);
+
         ChessPiece* getPiece(const int * coordinate);
 
     private:
         //IGNORE: char chess_board[ranks][files];
+        
         PieceColour turn;
         bool whiteInCheck = false;
         bool blackInCheck = false;

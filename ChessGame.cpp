@@ -4,6 +4,7 @@
 #include "ChessGame.h"
 #include "ChessPiece.h"
 
+
 using namespace std;
 
 void ChessGame::loadState(const char * fenString) {
@@ -125,6 +126,12 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
 bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
 
+    // NOT IN CHECK
+    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
+        cout << "ERROR: Cannot make move - you are in check.\n";
+        return false;
+    }
+
     // ARE THE COORDINATES VALID
     for (int i=0; i<2; i++) {
         if (initCoord[i] < 0 || initCoord[i] > 7 || destCoord[i] < 0 || destCoord[i] > 7) {
@@ -150,12 +157,6 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
     ChessPiece* pieceAtDestination = getPiece(destCoord);
     if (pieceAtDestination != NULL && pieceAtDestination->getColour() != pieceAtOrigin->getColour()) {
         cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
-        return false;
-    }
-
-    // NOT IN CHECK
-    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
-        cout << "ERROR: Cannot make move - you are in check.\n";
         return false;
     }
 
@@ -252,12 +253,22 @@ void deletePiece(ChessPiece* pieceToDelete) {
 }
 
 bool ChessGame::detectCheck(ChessPiece* square) {
+
+    bool detected = false;
     
     if (detectKnightInRange(square)) {
-        return true;
-    }          
+        detected = true;
+    }
 
-    return doesPieceSeeSquare(square, findNearestNeighbour(square, leftRank), leftRank);
+    if (doesPieceSeeSquare(square, findNearestNeighbour(square, leftRank), leftRank)) {
+        detected = true;
+    }
+
+    if (detected = true) {
+        (square->getColour() == white) ? whiteInCheck = true : blackInCheck = true;
+    }
+
+    return detected;
 }
 
 ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direction) {
@@ -392,8 +403,20 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
         return true;
     }
 
-    switch (direction) {
+    if ((pieceName == pawn)) {
+        if ((square->getColour() == white) && (nearestNeighbour->getRankIndex() == square->getRankIndex()+1)) {
+            if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
+                return true;
+            }
+        }
+        if ((square->getColour() == black) && (nearestNeighbour->getRankIndex() == square->getRankIndex()-1)) {
+            if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
+                return true;
+            }
+        }
+    }
 
+    switch (direction) {
         case leftRank:
         case rightRank:
         case upFile:
@@ -411,6 +434,7 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
                 return true;
             }
             break;
+
         default:
             return false;
     }
