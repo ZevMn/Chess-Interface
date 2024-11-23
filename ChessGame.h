@@ -21,8 +21,6 @@ class ChessGame {
         ChessPiece* getPiece(const int * coordinate);
 
     private:
-        //IGNORE: char chess_board[ranks][files];
-        
         PieceColour turn;
         bool whiteInCheck = false;
         bool blackInCheck = false;

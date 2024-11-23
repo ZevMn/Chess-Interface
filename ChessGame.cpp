@@ -32,14 +32,12 @@ void ChessGame::loadState(const char * fenString) {
 
         else if (currentCharacter > '0' && currentCharacter < '9') { // Insert 'X' for each empty square
             for (int empty = 0; empty < (currentCharacter - '0'); empty++) {
-                //IGNORE: chess_board[rank][file] = 'X';
                 chessBoard[rank][file] = NULL;
                 file++;
             }
         }
 
         else { // Must be a piece as we are told that only valid FEN strings will be received as inputs
-            //IGNORE: chess_board[rank][file] = current_character;
             chessBoard[rank][file] = createChessPiece(currentCharacter, rank, file);
             file++;
         }
@@ -238,14 +236,14 @@ ChessPiece* ChessGame::getPiece(const int* coordinate) {
 
 void ChessGame::makeMove(int* initCoord, int* destCoord) {
 
-    ChessPiece* ptrAtOrigin = chessBoard[initCoord[0]][initCoord[1]];
-    ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]];
+    ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]]; // Retain a pointer to the piece at the destination square
 
-    if (ptrAtDestination != nullptr) {
+    chessBoard[destCoord[0]][destCoord[1]] = chessBoard[initCoord[0]][initCoord[1]]; // Make the move
+    chessBoard[initCoord[0]][initCoord[1]] = nullptr;
+
+    if (ptrAtDestination != nullptr) { // If a capture has occured, delete the piece from memory
             deletePiece(ptrAtDestination);
         }
-        ptrAtDestination = ptrAtOrigin;
-        ptrAtOrigin = nullptr;
 }
 
 void deletePiece(ChessPiece* pieceToDelete) {
@@ -264,7 +262,7 @@ bool ChessGame::detectCheck(ChessPiece* square) {
         detected = true;
     }
 
-    if (detected = true) {
+    if (detected) {
         (square->getColour() == white) ? whiteInCheck = true : blackInCheck = true;
     }
 
@@ -278,73 +276,65 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
     switch (direction) {
         case leftRank:
             for (int i=rank-1; i >= 0; i--) {
-            if (chessBoard[i][file] != nullptr) {
-                return chessBoard[i][file];
-            }
-            return nullptr;
+                if (chessBoard[i][file] != nullptr) {
+                    return chessBoard[i][file];
+                }
             }
             break;
 
         case rightRank:
             for (int i=rank+1; i < 8; i++) {
-            if (chessBoard[i][file] != nullptr) {
-                return chessBoard[i][file];
-            }
-            return nullptr;
+                if (chessBoard[i][file] != nullptr) {
+                    return chessBoard[i][file];
+                }
             }
             break;
 
         case upFile:
             for (int i=file+1; i < 8; i++) {
-            if (chessBoard[rank][i] != nullptr) {
-                return chessBoard[rank][i];
-            }
-            return nullptr;
+                if (chessBoard[rank][i] != nullptr) {
+                    return chessBoard[rank][i];
+                }
             }
             break;
 
         case downFile:
             for (int i=file-1; i >= 0; i--) {
-            if (chessBoard[rank][i] != nullptr) {
-                return chessBoard[rank][i];
-            }
-            return nullptr;
+                if (chessBoard[rank][i] != nullptr) {
+                    return chessBoard[rank][i];
+                }
             }
             break;
 
         case plusplus:
             for (int i=1; i+max(rank, file) < 8; i++) {
-            if (chessBoard[rank+i][file+i] != nullptr) {
-                return chessBoard[rank+i][file+i];
-            }
-            return nullptr;
+                if (chessBoard[rank+i][file+i] != nullptr) {
+                    return chessBoard[rank+i][file+i];
+                }
             }
             break;
 
         case minusminus:
             for (int i=1; min(rank, file)-i >= 0; i++) {
-            if (chessBoard[rank-i][file-i] != nullptr) {
-                return chessBoard[rank-i][file-i];
-            }
-            return nullptr;
+                if (chessBoard[rank-i][file-i] != nullptr) {
+                    return chessBoard[rank-i][file-i];
+                }
             }
             break;
 
         case plusminus:
             for (int i=1; (rank + i < 8) && (file - i >= 0); i++) {
-            if (chessBoard[rank+i][file-i] != nullptr) {
-                return chessBoard[rank+i][file-i];
-            }
-            return nullptr;
+                if (chessBoard[rank+i][file-i] != nullptr) {
+                    return chessBoard[rank+i][file-i];
+                }
             }
             break;
 
         case minusplus:
             for (int i=1; (rank - i >= 0) && (file + i < 8); i++) {
-            if (chessBoard[rank-i][file+i] != nullptr) {
-                return chessBoard[rank-i][file+i];
-            }
-            return nullptr;
+                if (chessBoard[rank-i][file+i] != nullptr) {
+                    return chessBoard[rank-i][file+i];
+                }
             }
             break;
 
@@ -352,38 +342,26 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
             cout << "ERROR: Please input a valid direction.\n";
             return nullptr;
     }
+    return nullptr;
 }
 
 bool ChessGame::detectKnightInRange(ChessPiece* square) {
     int rank = square->getRankIndex();
     int file = square->getFileIndex();
 
-    if (chessBoard[rank+1][file+2]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank-1][file+2]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank+1][file-2]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank-1][file-2]->getType() == knight) {
-        return true;
-    }
+    int knightMoves[8][2] = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
 
-    if (chessBoard[rank+2][file+1]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank-1][file+2]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank+1][file-2]->getType() == knight) {
-        return true;
-    }
-    if (chessBoard[rank-1][file-2]->getType() == knight) {
-        return true;
-    }
+    for (int move=0; move < 8; move++) {
+        int newRank = rank + knightMoves[move][0];
+        int newFile = file + knightMoves[move][1];
 
+        if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+            ChessPiece* possibleKnight = chessBoard[newRank][newFile];
+            if (possibleKnight && (possibleKnight->getType() == knight) && (possibleKnight->getColour() != square->getColour())) {
+                return true;
+            }
+        }
+    }
     return false;
 }
 

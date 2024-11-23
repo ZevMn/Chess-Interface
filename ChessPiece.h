@@ -3,7 +3,7 @@
 #ifndef CHESSPIECE_H
 #define CHESSPIECE_H
 
-#include "ChessGame.h"
+//#include "ChessGame.h"
 #include <string>
 
 enum PieceType {pawn, rook, knight, bishop, queen, king};
@@ -32,15 +32,13 @@ class ChessPiece {
 
         int rankIndex;
         int fileIndex;
-
-        virtual void makeMove();
-        virtual void capture();
 };
 
 class Pawn : public ChessPiece {
 
     public:
         Pawn(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
         bool firstMove;
         // bool canEnPassant
@@ -51,6 +49,7 @@ class Rook : public ChessPiece {
 
     public:
         Rook(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
         bool hasMoved;
     // left_rook
@@ -60,6 +59,7 @@ class Knight : public ChessPiece {
 
     public:
         Knight(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
@@ -67,6 +67,7 @@ class Bishop : public ChessPiece {
     
     public:
         Bishop(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
@@ -74,6 +75,7 @@ class Queen : public ChessPiece {
 
     public:
         Queen(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
 
@@ -81,6 +83,7 @@ class King : public ChessPiece {
 
     public:
         King(PieceColour c, int rank, int file);
+
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // has_moved
     // in_check
