@@ -8,7 +8,8 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece(PieceColour c, PieceType t) : colour(c) type(t) {}
+ChessPiece(PieceColour c, PieceType t, int rank, int file) : colour(c), type(t), rankIndex(rank), fileIndex(file) {
+}
 
 char ChessPiece::getAbbrName() const {
     return abbrName;
@@ -20,6 +21,14 @@ PieceType ChessPiece::getType() const {
 
 PieceColour ChessPiece::getColour() const {
     return colour;
+}
+
+int ChessPiece::getRankIndex() const {
+    return rankIndex;
+}
+
+int ChessPiece::getFileIndex() const {
+    return fileIndex;
 }
 
 /* PAWN */

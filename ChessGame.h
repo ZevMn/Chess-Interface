@@ -8,6 +8,8 @@
 
 const int ranks = 8, files = 8;
 
+enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
+
 class ChessGame {
 
     public:
@@ -24,11 +26,14 @@ class ChessGame {
         bool whiteInCheck = false;
         bool blackInCheck = false;
 
-        ChessPiece* createChessPiece(char abbrName); //DONE
+        ChessPiece* createChessPiece(char abbrName, int rank, int file);
         int* coordToIndex(const char * coord);
         bool checkMoveValid(const int* initCoord, const int* destCoord);
         void makeMove(int* initCoord, int* destCoord);
-        void detectCheck(ChessPiece* square);
+        bool detectCheck(ChessPiece* square);
+        ChessPiece* findNearestNeighbour(ChessPiece* square, Directions direction);
+        bool detectKnightInRange(ChessPiece* square);
+        bool doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction);
         void deletePiece(ChessPiece* pieceToDelete);
 };
 

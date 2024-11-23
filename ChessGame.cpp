@@ -39,7 +39,7 @@ void ChessGame::loadState(const char * fenString) {
 
         else { // Must be a piece as we are told that only valid FEN strings will be received as inputs
             //IGNORE: chess_board[rank][file] = current_character;
-            chessBoard[rank][file] = createChessPiece(currentCharacter);
+            chessBoard[rank][file] = createChessPiece(currentCharacter, rank, file);
             file++;
         }
         i++; // At the end of the loop, i will hold the position of the blank space
@@ -74,46 +74,46 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
     }
 }
 
-ChessPiece* ChessGame::createChessPiece(char abbrName) {
+ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
     ChessPiece* newPiece;
 
     switch(abbrName) {
         case 'p':
-            newPiece = new Pawn(black);
+            newPiece = new Pawn(black, rank, file);
             break;
         case 'P':
-            newPiece = new Pawn(white);
+            newPiece = new Pawn(white, rank, file);
             break;
         case 'r':
-            newPiece = new Rook(black);
+            newPiece = new Rook(black, rank, file);
             break;
         case 'R':
-            newPiece = new Rook(white);
+            newPiece = new Rook(white, rank, file);
             break;
         case 'n':
-            newPiece = new Knight(black);
+            newPiece = new Knight(black, rank, file);
             break;
         case 'N':
-            newPiece = new Knight(white);
+            newPiece = new Knight(white, rank, file);
             break;
         case 'b':
-            newPiece = new Bishop(black);
+            newPiece = new Bishop(black, rank, file);
             break;
         case 'B':
-            newPiece = new Bishop(white);
+            newPiece = new Bishop(white, rank, file);
             break;
         case 'q':
-            newPiece = new Queen(black);
+            newPiece = new Queen(black, rank, file);
             break;
         case 'Q':
-            newPiece = new Queen(white);
+            newPiece = new Queen(white, rank, file);
             break;
         case 'k':
-            newPiece = new King(black);
+            newPiece = new King(black, rank, file);
             break;
         case 'K':
-            newPiece = new King(white);
+            newPiece = new King(white, rank, file);
             break;
         default:
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
@@ -251,12 +251,167 @@ void deletePiece(ChessPiece* pieceToDelete) {
     delete pieceToDelete;
 }
 
-void ChessGame::detectCheck(ChessPiece* square) {
-    // @param sqaure Item in chessBoard
-    // If rook sees square along file or rank -> oppositeColourInCheck = true
-    // If bishop sees square along diagonal -> oppositeColourInCheck = true
-    // If queen sees square along file, rank or diagonal -> oppositeColourInCheck = true
-    // If King within one square in any direction -> oppositeColourInCheck = true
-    // If pawn diagonally adjacent -> If pawn validMove -> oppositeColourInCheck
-    // If knight within (+-1, +-2) or (+-2,+-1) -> oppositeColourInCheck
+bool ChessGame::detectCheck(ChessPiece* square) {
+    
+    if (detectKnightInRange(square)) {
+        return true;
+    }          
+
+    return doesPieceSeeSquare(square, findNearestNeighbour(square, leftRank), leftRank);
+}
+
+ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direction) {
+    int rank = square->getRankIndex();
+    int file = square->getFileIndex();
+
+    switch (direction) {
+        case leftRank:
+            for (int i=rank-1; i >= 0; i--) {
+            if (chessBoard[i][file] != nullptr) {
+                return chessBoard[i][file];
+            }
+            return nullptr;
+            }
+            break;
+
+        case rightRank:
+            for (int i=rank+1; i < 8; i++) {
+            if (chessBoard[i][file] != nullptr) {
+                return chessBoard[i][file];
+            }
+            return nullptr;
+            }
+            break;
+
+        case upFile:
+            for (int i=file+1; i < 8; i++) {
+            if (chessBoard[rank][i] != nullptr) {
+                return chessBoard[rank][i];
+            }
+            return nullptr;
+            }
+            break;
+
+        case downFile:
+            for (int i=file-1; i >= 0; i--) {
+            if (chessBoard[rank][i] != nullptr) {
+                return chessBoard[rank][i];
+            }
+            return nullptr;
+            }
+            break;
+
+        case plusplus:
+            for (int i=1; i+max(rank, file) < 8; i++) {
+            if (chessBoard[rank+i][file+i] != nullptr) {
+                return chessBoard[rank+i][file+i];
+            }
+            return nullptr;
+            }
+            break;
+
+        case minusminus:
+            for (int i=1; min(rank, file)-i >= 0; i++) {
+            if (chessBoard[rank-i][file-i] != nullptr) {
+                return chessBoard[rank-i][file-i];
+            }
+            return nullptr;
+            }
+            break;
+
+        case plusminus:
+            for (int i=1; (rank + i < 8) && (file - i >= 0); i++) {
+            if (chessBoard[rank+i][file-i] != nullptr) {
+                return chessBoard[rank+i][file-i];
+            }
+            return nullptr;
+            }
+            break;
+
+        case minusplus:
+            for (int i=1; (rank - i >= 0) && (file + i < 8); i++) {
+            if (chessBoard[rank-i][file+i] != nullptr) {
+                return chessBoard[rank-i][file+i];
+            }
+            return nullptr;
+            }
+            break;
+
+        default:
+            cout << "ERROR: Please input a valid direction.\n";
+            return nullptr;
+    }
+}
+
+bool ChessGame::detectKnightInRange(ChessPiece* square) {
+    int rank = square->getRankIndex();
+    int file = square->getFileIndex();
+
+    if (chessBoard[rank+1][file+2]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank-1][file+2]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank+1][file-2]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank-1][file-2]->getType() == knight) {
+        return true;
+    }
+
+    if (chessBoard[rank+2][file+1]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank-1][file+2]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank+1][file-2]->getType() == knight) {
+        return true;
+    }
+    if (chessBoard[rank-1][file-2]->getType() == knight) {
+        return true;
+    }
+
+    return false;
+}
+
+bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction) {
+
+    if (square->getColour() == nearestNeighbour->getColour()) { // Return false if piece is friendly
+        return false;
+    }
+
+    PieceType pieceName = nearestNeighbour->getType();
+
+    if (pieceName == queen) {
+        return true;
+    }
+
+    if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - square->getRankIndex()), abs(nearestNeighbour->getFileIndex() - square->getFileIndex())) == 1)) {
+        return true;
+    }
+
+    switch (direction) {
+
+        case leftRank:
+        case rightRank:
+        case upFile:
+        case downFile:
+            if (pieceName == rook) {
+                return true;
+            }
+            break;
+
+        case plusplus:
+        case minusminus:
+        case plusminus:
+        case minusplus:
+            if (pieceName == bishop) {
+                return true;
+            }
+            break;
+        default:
+            return false;
+    }
 }
