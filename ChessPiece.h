@@ -19,8 +19,6 @@ class ChessPiece {
         ChessPiece(PieceColour c, PieceType t, int rank, int file);
         virtual ~ChessPiece();
 
-        void setChessGame(ChessGame* game);
-
         bool hasMoved;
 
         char getAbbrName() const;
@@ -44,8 +42,6 @@ class ChessPiece {
 
         int rankIndex;
         int fileIndex;
-
-        ChessGame* chessGame;
 };
 
 class Pawn : public ChessPiece {

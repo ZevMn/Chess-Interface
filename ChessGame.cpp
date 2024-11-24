@@ -167,11 +167,6 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
             exit(1);
     }
-
-    if (newPiece != nullptr) {
-        newPiece->setChessGame(this);
-    }
-
     return newPiece;
 }
 
@@ -296,6 +291,12 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
         return false;
     }
 
+    // INVALID PIECE MOVEMENT PATTERN
+    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
+        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
+        return false;
+    }
+
     // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
     ChessPiece* pieceAtDestination = getPiece(destCoord);
     if (pieceAtDestination != NULL && pieceAtDestination->getColour() != pieceAtOrigin->getColour()) {
@@ -310,9 +311,11 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
 
             for (int i=1; i <= abs(destCoord[0]-initCoord[0]);i++) {
                 if ((destCoord[0] > initCoord[0]) && (chessBoard[initCoord[0] + i][initCoord[1]] != nullptr)) {
+                        cout << "ERROR: 1\n";
                         return false;
                 }
                 else if ((destCoord[0] < initCoord[0]) && (chessBoard[initCoord[0] - i][initCoord[1]] != nullptr)) {
+                        cout << "ERROR: 2\n";
                         return false;
                 }
             }
@@ -322,9 +325,11 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
         
             for (int i=1; i <= abs(destCoord[1]-initCoord[1]);i++) {
                 if ((destCoord[1] > initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] + i] != nullptr)) {
+                        cout << "ERROR: 3\n";
                         return false;
                 }
                 else if ((destCoord[1] < initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] - i] != nullptr)) {
+                        cout << "ERROR: 4\n";
                         return false;
                 }
             }
@@ -336,21 +341,25 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
 
                 if ((destCoord[0] > initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (+,+)
                     if (chessBoard[initCoord[0]+i][initCoord[1]+i] != nullptr) {
+                        cout << "ERROR: 5\n";
                         return false;
                     }
                 }
                 if ((destCoord[0] < initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (-,-)
                     if (chessBoard[initCoord[0]-i][initCoord[1]-i] != nullptr) {
+                        cout << "ERROR: 6\n";
                         return false;
                     }
                 }
                 if ((destCoord[0] > initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (+,-)
                     if (chessBoard[initCoord[0]+i][initCoord[1]-i] != nullptr) {
+                        cout << "ERROR: 7\n";
                         return false;
                     }
                 }
                 if ((destCoord[0] < initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (-,+)
                     if (chessBoard[initCoord[0]-i][initCoord[1]+i] != nullptr) {
+                        cout << "ERROR: 8\n";
                         return false;
                     }
                 }
@@ -359,12 +368,6 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
     }
 
     // NOT MOVING INTO CHECK
-
-    // INVALID PIECE MOVEMENT PATTERN
-    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
-        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
-        return false;
-    }
 
     return true;
 }

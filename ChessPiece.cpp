@@ -8,13 +8,9 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file), chessGame(nullptr) {}
+ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file) {}
 
 ChessPiece::~ChessPiece() {}
-
-void ChessPiece::setChessGame(ChessGame* game) {
-    chessGame = game;
-}
 
 char ChessPiece::getAbbrName() const {
     return abbrName;
@@ -98,14 +94,25 @@ Pawn::Pawn(PieceColour c, int rank, int file) : ChessPiece(c, pawn, rank, file) 
 
 bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
-    if (coords2[1] == coords1[1]) { // If moving along a rank only
-        if (!hasMoved && (coords2[0] == coords1[0] + 2)) {
-            return true;
+    int oldRank = coords1[0];
+    int oldFile = coords1[1];
+    int newRank = coords2[0];
+    int newFile = coords2[1];
+
+    int advance = newRank - oldRank;
+
+    if (oldFile == newFile) {
+        if (colour == white) {
+            if (advance == 1 || (!hasMoved && advance == 2)) {
+                return true;
+            }
         }
-        if (coords2[0] == coords1[0] + 1) {
+        else if (advance == -1 || (!hasMoved && advance == -2)) { // WHY DOES SETTING THESE TO - CAUSE A SEG FAULT
+            cout << "This part works fine";
             return true;
         }
     }
+
     return false;
 }
 
