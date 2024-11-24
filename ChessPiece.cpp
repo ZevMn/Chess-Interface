@@ -30,28 +30,57 @@ int ChessPiece::getFileIndex() const {
     return fileIndex;
 }
 
-std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
+// std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
 
-    if (chessPiece->colour == white) {
-        os << "white ";
+//     if (chessPiece->colour == white) {
+//         os << "white ";
+//     }
+//     else {
+//         os << "black ";
+//     }
+
+//     switch (chessPiece->type) {
+//         case pawn:
+//             os << "pawn"; break;
+//         case rook:
+//             os << "rook"; break;
+//         case knight:
+//             os << "knight"; break;
+//         case bishop:
+//             os << "bishop"; break;
+//         case queen:
+//             os << "queen"; break;
+//         case king:
+//             os << "king"; break;
+//     }
+//     return os;
+// }
+
+std::ostream &operator<<(std::ostream& os, PieceType type) {
+
+    switch (type) {
+        case pawn:
+            os << "Pawn"; break;
+        case rook:
+            os << "Rook"; break;
+        case knight:
+            os << "Knight"; break;
+        case bishop:
+            os << "Bishop"; break;
+        case queen:
+            os << "Queen"; break;
+        case king:
+            os << "King"; break;
+    }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream& os, PieceColour colour) {
+    if (colour == white) {
+        os << "White";
     }
     else {
-        os << "black ";
-    }
-    
-    switch (chessPiece->type) {
-        case pawn:
-            os << "pawn"; break;
-        case rook:
-            os << "rook"; break;
-        case knight:
-            os << "knight"; break;
-        case bishop:
-            os << "bishop"; break;
-        case queen:
-            os << "queen"; break;
-        case king:
-            os << "king"; break;
+        os << "Black";
     }
     return os;
 }

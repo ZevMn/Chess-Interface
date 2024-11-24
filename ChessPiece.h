@@ -7,7 +7,11 @@
 #include <string>
 
 enum PieceType {pawn, rook, knight, bishop, queen, king};
+std::ostream &operator<<(std::ostream& os, PieceType type);
+
+
 enum PieceColour {white, black};
+std::ostream &operator<<(std::ostream& os, PieceColour colour);
 
 class ChessPiece {
     // ABSTRACT CLASS
@@ -26,7 +30,7 @@ class ChessPiece {
 
         virtual bool isValidMovePattern(const int* coords1, const int* coords2) const;
 
-        friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
+        //friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
 
     protected:
         char abbrName;

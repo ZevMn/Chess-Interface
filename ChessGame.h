@@ -24,6 +24,8 @@ class ChessGame {
 
     private:
         PieceColour turn;
+        bool captureOccured = false;
+        PieceType capturedPieceName;
         bool whiteInCheck = false;
         bool blackInCheck = false;
 
@@ -42,6 +44,7 @@ class ChessGame {
 
         // Helper functions for detectGameState()
         bool anySafeSquares(ChessPiece* king);
+        bool anyPiecesCanMove(); // ADD FUNCTIONALITY
 
         // Helper functions for makeMove()
         void deletePiece(ChessPiece* pieceToDelete);
@@ -53,7 +56,7 @@ class ChessGame {
         bool detectKnightInRange(ChessPiece* square);
         bool doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction);
 
-        void endGame(); // Add functionality
+        void endGame(); // ADD FUNCTIONALITY
 };
 
 #endif

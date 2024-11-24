@@ -69,7 +69,13 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
 
     if (checkMoveValid(originCoord, destinationCoord)) {
         makeMove(originCoord, destinationCoord);
+        cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << coord1 << " to " << coord2;
         switchTurn();
+        if (captureOccured) {
+            cout << " taking" << turn << "'s " << capturedPieceName;
+        }
+        cout << "\n\n";
+        captureOccured = false;
     }
     else {
         cout << "move is not valid\n";
@@ -147,11 +153,13 @@ void ChessGame::detectGameState() {
     }
 
     // Detect Stalemate
-    if (turn == white && !whiteInCheck && !anySafeSquares(whiteKing)) {
-        // return stalemate if no other white pieces can be moved
+    if (turn == white && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) {
+        cout << "Stalemate\n";
+        endGame();
     }
-    if (turn == black && !blackInCheck && !anySafeSquares(blackKing)) {
-        // return stalemate if no other black pieces can be moved
+    if (turn == black && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) {
+        cout << "Stalemate\n";
+        endGame();
     }
 
     // Detect draw by 50 moves
@@ -172,7 +180,7 @@ bool ChessGame::anySafeSquares(ChessPiece* king) {
 
         if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
             int destinationCoord[2] = {newRank, newFile};
-            
+
             // check adjacent square empty
             if (chessBoard[newRank][newFile] != nullptr) {
 
@@ -190,6 +198,14 @@ bool ChessGame::anySafeSquares(ChessPiece* king) {
             }
         }
     }
+    return false;
+}
+
+bool ChessGame::anyPiecesCanMove() {
+
+    // Go through all white pieces
+    // Return true if any of them can move
+
     return false;
 }
 
@@ -307,8 +323,10 @@ void ChessGame::makeMove(int* initCoord, int* destCoord) {
     chessBoard[initCoord[0]][initCoord[1]] = nullptr;
 
     if (ptrAtDestination != nullptr) { // If a capture has occured, delete the piece from memory
-            deletePiece(ptrAtDestination);
-        }
+        captureOccured = true;
+        capturedPieceName = ptrAtDestination->getType();
+        deletePiece(ptrAtDestination);
+    }
 
     modifyAttributes(chessBoard[destCoord[0]][destCoord[1]]);
 
