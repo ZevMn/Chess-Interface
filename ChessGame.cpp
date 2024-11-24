@@ -67,10 +67,18 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
 
     if (checkMoveValid(originCoord, destinationCoord)) {
         makeMove(originCoord, destinationCoord);
+        switchTurn();
     }
     else {
         cout << "move is not valid\n";
     }
+
+    delete [] originCoord;
+    delete [] destinationCoord;
+}
+
+ChessPiece* ChessGame::getPiece(const int* coordinate) {
+    return chessBoard[coordinate[0]][coordinate[1]];
 }
 
 ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
@@ -110,9 +118,11 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
             break;
         case 'k':
             newPiece = new King(black, rank, file);
+            blackKing = newPiece;
             break;
         case 'K':
             newPiece = new King(white, rank, file);
+            whiteKing = newPiece;
             break;
         default:
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
@@ -120,6 +130,16 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
     return newPiece;
     }
+}
+
+int* ChessGame::coordToIndex(const char * coord) {
+
+    int* indexArray = new int[2];
+
+    indexArray[0] = coord[0] - 'A';
+    indexArray[1] = coord[1] - '1';
+
+    return indexArray;
 }
 
 bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
@@ -218,22 +238,6 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
     return pieceAtOrigin->isValidMovePattern(initCoord, destCoord);
 }
 
-int* ChessGame::coordToIndex(const char * coord) {
-
-    int indexArray[2];
-
-    //int* indexArray = new int[2];
-
-    indexArray[0] = coord[0] - 'A';
-    indexArray[1] = coord[1] - '1';
-
-    return indexArray;
-}
-
-ChessPiece* ChessGame::getPiece(const int* coordinate) {
-    return chessBoard[coordinate[0]][coordinate[1]];
-}
-
 void ChessGame::makeMove(int* initCoord, int* destCoord) {
 
     ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]]; // Retain a pointer to the piece at the destination square
@@ -246,14 +250,25 @@ void ChessGame::makeMove(int* initCoord, int* destCoord) {
         }
 
     modifyAttributes(chessBoard[destCoord[0]][destCoord[1]]);
+
+    if (turn == white) { // Detect if move has put opponent in check
+        blackInCheck = detectCheck(blackKing);
+    }
+    else {
+        whiteInCheck = detectCheck(whiteKing);
+    }
 }
 
-void modifyAttributes(ChessPiece* movedPiece) {
-        movedPiece->hasMoved = true;
+void ChessGame::switchTurn() {
+    turn = (turn == white) ? black : white;
 }
 
 void deletePiece(ChessPiece* pieceToDelete) {
     delete pieceToDelete;
+}
+
+void modifyAttributes(ChessPiece* movedPiece) {
+    movedPiece->hasMoved = true;
 }
 
 bool ChessGame::detectCheck(ChessPiece* square) {
@@ -421,5 +436,15 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
 
         default:
             return false;
+    }
+}
+
+void ChessGame::printBoard() {
+
+    for (int rank=0; rank<8; rank++) {
+        for (int file=0; file<8; file++) {
+            cout << " " << chessBoard[rank][file] << " ";
+        }
+        cout << "\n";
     }
 }

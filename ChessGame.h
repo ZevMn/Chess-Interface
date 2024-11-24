@@ -20,21 +20,34 @@ class ChessGame {
 
         ChessPiece* getPiece(const int * coordinate);
 
+        void printBoard();
+
     private:
         PieceColour turn;
         bool whiteInCheck = false;
         bool blackInCheck = false;
 
+        ChessPiece* blackKing;
+        ChessPiece* whiteKing;
+        
+        // Helper functions for loadState()
         ChessPiece* createChessPiece(char abbrName, int rank, int file);
+
+        // Helper functions for submitMove()
         int* coordToIndex(const char * coord);
         bool checkMoveValid(const int* initCoord, const int* destCoord);
         void makeMove(int* initCoord, int* destCoord);
+        void switchTurn();
+
+        // Helper functions for makeMove()
+        void deletePiece(ChessPiece* pieceToDelete);
         void modifyAttributes(ChessPiece* movedPiece);
         bool detectCheck(ChessPiece* square);
+
+        // Helper functions for detectCheck()
         ChessPiece* findNearestNeighbour(ChessPiece* square, Directions direction);
         bool detectKnightInRange(ChessPiece* square);
         bool doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction);
-        void deletePiece(ChessPiece* pieceToDelete);
 };
 
 #endif

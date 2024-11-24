@@ -30,6 +30,32 @@ int ChessPiece::getFileIndex() const {
     return fileIndex;
 }
 
+std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
+
+    if (chessPiece->colour == white) {
+        os << "white ";
+    }
+    else {
+        os << "black ";
+    }
+    
+    switch (chessPiece->type) {
+        case pawn:
+            os << "pawn"; break;
+        case rook:
+            os << "rook"; break;
+        case knight:
+            os << "knight"; break;
+        case bishop:
+            os << "bishop"; break;
+        case queen:
+            os << "queen"; break;
+        case king:
+            os << "king"; break;
+    }
+    return os;
+}
+
 /* PAWN */
 Pawn::Pawn(PieceColour c, int rank, int file) : ChessPiece(c, pawn, rank, file) {}
 
