@@ -28,11 +28,11 @@ class ChessGame {
     private:
         PieceColour turn;
 
-        bool captureOccured = false;
+        bool captureOccured;
         PieceType capturedPieceName;
         
-        bool whiteInCheck = false;
-        bool blackInCheck = false;
+        bool whiteInCheck;
+        bool blackInCheck;
 
         ChessPiece* blackKing;
         ChessPiece* whiteKing;
@@ -43,7 +43,7 @@ class ChessGame {
         // Helper functions for submitMove()
         void detectGameState();
         int* coordToIndex(const char * coord);
-        bool checkMoveValid(const int* initCoord, const int* destCoord);
+        bool checkMoveValid(const int* initCoord, const int* destCoord, const char * coord1, const char * coord2);
         void makeMove(int* initCoord, int* destCoord);
         void switchTurn();
 

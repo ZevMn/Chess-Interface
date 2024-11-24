@@ -7,7 +7,7 @@
 
 using namespace std;
 
-ChessGame::ChessGame() {
+ChessGame::ChessGame() : captureOccured(false), whiteInCheck(false), blackInCheck(false), blackKing(nullptr), whiteKing(nullptr) {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             chessBoard[i][j] = nullptr;
@@ -92,13 +92,15 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
     int* originCoord = coordToIndex(coord1);
     int* destinationCoord = coordToIndex(coord2);
 
-    if (checkMoveValid(originCoord, destinationCoord)) {
+    if (checkMoveValid(originCoord, destinationCoord, coord1, coord2)) {
         makeMove(originCoord, destinationCoord);
         cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << coord1 << " to " << coord2;
         switchTurn();
         if (captureOccured) {
             cout << " taking" << turn << "'s " << capturedPieceName;
         }
+        cout << "\n\n";
+        printBoard();
         cout << "\n\n";
         captureOccured = false;
     }
@@ -188,7 +190,7 @@ void ChessGame::detectGameState() {
 
     // Detect draw by 50 moves
     // Detect Draw by repetition
-    return;
+    cout << "Game continues\n";
 }
 
 bool ChessGame::anySafeSquares(ChessPiece* king) {
@@ -200,14 +202,14 @@ bool ChessGame::anySafeSquares(ChessPiece* king) {
     int kingMoves[8][2] = {{1, 1}, {1, 0}, {0, 1}, {-1, -1}, {-1, 0}, {0, -1}, {1, -1}, {-1, 1}};
 
     for (int move=0; move < 8; move++) {
-        int newRank = kingMoves[move][0];
-        int newFile = kingMoves[move][1];
+        int newRank = rank + kingMoves[move][0];
+        int newFile = file + kingMoves[move][1];
 
         if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
             int destinationCoord[2] = {newRank, newFile};
 
             // check adjacent square empty
-            if (chessBoard[newRank][newFile] != nullptr) {
+            if (chessBoard[newRank][newFile] == nullptr) {
 
                 // move the king to that square
                 makeMove(originCoord, destinationCoord);
@@ -239,8 +241,8 @@ int* ChessGame::coordToIndex(const char * coord) {
 
     int* indexArray = new int[2];
 
-    indexArray[0] = coord[0] - 'A';
-    indexArray[1] = coord[1] - '1';
+    indexArray[1] = coord[0] - 'A'; // files are denoted by letters
+    indexArray[0] = coord[1] - '1'; // ranks are deonated by numbers
 
     if (indexArray[0] < 0 || indexArray[0] > 7 || indexArray[1] < 0 || indexArray[1] > 7) {
         cout << "ERROR: Coordinate out of bounds.\n";
@@ -250,7 +252,7 @@ int* ChessGame::coordToIndex(const char * coord) {
     return indexArray;
 }
 
-bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
+bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const char * coord1, const char * coord2) {
 
     // NOT IN CHECK
     if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
@@ -266,16 +268,22 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord) {
         }
     }
 
-    // IS THERE A PIECE OF CORRECT COLOUR TO MOVE
+    // IS THERE A PIECE AT THE POSITION TO MOVE
     ChessPiece* pieceAtOrigin = getPiece(initCoord);
-    if (pieceAtOrigin == nullptr || pieceAtOrigin->getColour() != turn) {
-        cout << "ERROR: Cannot make move - you have not selected a valid piece to movem\n";
+    if (pieceAtOrigin == nullptr) {
+        cout << "There is no piece at position " << coord1 << "!\n";
+        return false;
+    }
+
+    // IS IT THE PLAYERS TURN TO MOVE
+    if (pieceAtOrigin->getColour() != turn) {
+        cout << "It is not " << turn << "'s turn to move!\n";
         return false;
     }
 
     // IS THE PIECE ACTUALLY MOVING
     if (initCoord[0] == destCoord[0] && initCoord[1] == destCoord[1]) {
-        cout << "ERROR: Cannot make move - piece must move from current squarem\n";
+        cout << "ERROR: Cannot make move - piece must move from current square\n";
         return false;
     }
 
