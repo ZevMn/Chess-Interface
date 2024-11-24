@@ -7,6 +7,14 @@
 
 using namespace std;
 
+// ChessGame::ChessGame() : {
+//     for (int i=0; i<8; i++) {
+//         for (int j=0; j<8; j++) {
+//             chessBoard[i][j] = nullptr;
+//         }
+//     }
+// }
+
 void ChessGame::loadState(const char * fenString) {
     cout << "A new board is loaded!\n\n";
 
@@ -32,7 +40,7 @@ void ChessGame::loadState(const char * fenString) {
 
         else if (currentCharacter > '0' && currentCharacter < '9') { // Insert 'X' for each empty square
             for (int empty = 0; empty < (currentCharacter - '0'); empty++) {
-                chessBoard[rank][file] = NULL;
+                chessBoard[rank][file] = nullptr;
                 file++;
             }
         }
@@ -91,7 +99,7 @@ ChessPiece* ChessGame::getPiece(const int* coordinate) {
 
 ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
-    ChessPiece* newPiece;
+    ChessPiece* newPiece = nullptr;
 
     switch(abbrName) {
         case 'p':
@@ -133,7 +141,6 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
             whiteKing = newPiece;
             break;
         default:
-            newPiece = nullptr;
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
             exit(1);
     }
@@ -164,6 +171,7 @@ void ChessGame::detectGameState() {
 
     // Detect draw by 50 moves
     // Detect Draw by repetition
+    return;
 }
 
 bool ChessGame::anySafeSquares(ChessPiece* king) {
@@ -345,6 +353,7 @@ void ChessGame::switchTurn() {
 
 void ChessGame::deletePiece(ChessPiece* pieceToDelete) {
     delete pieceToDelete;
+    pieceToDelete = nullptr;
 }
 
 void ChessGame::modifyAttributes(ChessPiece* movedPiece) {

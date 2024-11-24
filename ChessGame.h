@@ -13,6 +13,8 @@ enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, pl
 class ChessGame {
 
     public:
+        //ChessGame();
+
         ChessPiece* chessBoard[ranks][files];
 
         void loadState(const char * fenString);
