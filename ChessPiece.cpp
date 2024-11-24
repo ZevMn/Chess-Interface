@@ -8,7 +8,9 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : colour(c), type(t), rankIndex(rank), fileIndex(file), hasMoved(false) {}
+ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file) {}
+
+ChessPiece::~ChessPiece() {}
 
 char ChessPiece::getAbbrName() const {
     return abbrName;

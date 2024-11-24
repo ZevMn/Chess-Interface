@@ -133,11 +133,11 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
             whiteKing = newPiece;
             break;
         default:
+            newPiece = nullptr;
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
             exit(1);
-
-    return newPiece;
     }
+    return newPiece;
 }
 
 void ChessGame::detectGameState() {
@@ -342,11 +342,11 @@ void ChessGame::switchTurn() {
     turn = (turn == white) ? black : white;
 }
 
-void deletePiece(ChessPiece* pieceToDelete) {
+void ChessGame::deletePiece(ChessPiece* pieceToDelete) {
     delete pieceToDelete;
 }
 
-void modifyAttributes(ChessPiece* movedPiece) {
+void ChessGame::modifyAttributes(ChessPiece* movedPiece) {
     movedPiece->hasMoved = true;
 }
 
@@ -516,6 +516,7 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
         default:
             return false;
     }
+    return false;
 }
 
 void ChessGame::printBoard() {
@@ -527,4 +528,8 @@ void ChessGame::printBoard() {
         }
         cout << "\n" << "--------------------------------------------------------" << "\n";
     }
+}
+
+void ChessGame::endGame() {
+    exit(1);
 }

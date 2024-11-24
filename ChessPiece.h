@@ -17,6 +17,7 @@ class ChessPiece {
     // ABSTRACT CLASS
     public:
         ChessPiece(PieceColour c, PieceType t, int rank, int file);
+        virtual ~ChessPiece();
 
         bool hasMoved;
 
@@ -28,7 +29,7 @@ class ChessPiece {
         int getRankIndex() const;
         int getFileIndex() const;
 
-        virtual bool isValidMovePattern(const int* coords1, const int* coords2) const;
+        virtual bool isValidMovePattern(const int* coords1, const int* coords2) const = 0;
 
         //friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
 
@@ -36,8 +37,8 @@ class ChessPiece {
         char abbrName;
         std::string name;
 
-        PieceType type;
         PieceColour colour;
+        PieceType type;
 
         int rankIndex;
         int fileIndex;
