@@ -28,6 +28,10 @@ ChessGame::~ChessGame() {
     delete [] chessBoard;
 }
 
+PieceColour ChessGame::getTurn() {
+    return turn;
+}
+
 void ChessGame::loadState(const char * fenString) {
     cout << "A new board is loaded!\n\n";
 
@@ -105,7 +109,7 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
         captureOccured = false;
     }
     else {
-        cout << "move is not valid\n";
+        cout << "Move " << coord1 << " to " << coord2 << " is not valid\n";
     }
 
     delete [] originCoord;
@@ -163,6 +167,11 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
             cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
             exit(1);
     }
+
+    if (newPiece != nullptr) {
+        newPiece->setChessGame(this);
+    }
+
     return newPiece;
 }
 
@@ -350,8 +359,14 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
     }
 
     // NOT MOVING INTO CHECK
-    
-    return pieceAtOrigin->isValidMovePattern(initCoord, destCoord);
+
+    // INVALID PIECE MOVEMENT PATTERN
+    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
+        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
+        return false;
+    }
+
+    return true;
 }
 
 void ChessGame::makeMove(int* initCoord, int* destCoord) {

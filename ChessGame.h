@@ -23,6 +23,8 @@ class ChessGame {
 
         ChessPiece* getPiece(const int * coordinate);
 
+        PieceColour getTurn();
+
         void printBoard();
 
     private:
