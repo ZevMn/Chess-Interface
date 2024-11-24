@@ -34,10 +34,14 @@ class ChessGame {
         ChessPiece* createChessPiece(char abbrName, int rank, int file);
 
         // Helper functions for submitMove()
+        void detectGameState();
         int* coordToIndex(const char * coord);
         bool checkMoveValid(const int* initCoord, const int* destCoord);
         void makeMove(int* initCoord, int* destCoord);
         void switchTurn();
+
+        // Helper functions for detectGameState()
+        bool anySafeSquares(ChessPiece* king);
 
         // Helper functions for makeMove()
         void deletePiece(ChessPiece* pieceToDelete);
@@ -48,6 +52,8 @@ class ChessGame {
         ChessPiece* findNearestNeighbour(ChessPiece* square, Directions direction);
         bool detectKnightInRange(ChessPiece* square);
         bool doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction);
+
+        void endGame(); // Add functionality
 };
 
 #endif

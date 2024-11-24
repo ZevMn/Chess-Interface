@@ -30,7 +30,7 @@ class ChessPiece {
 
     protected:
         char abbrName;
-        string name;
+        std::string name;
 
         PieceType type;
         PieceColour colour;

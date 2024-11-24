@@ -62,6 +62,8 @@ void ChessGame::loadState(const char * fenString) {
 
 void ChessGame::submitMove(const char * coord1, const char * coord2) {
 
+    detectGameState();
+
     int* originCoord = coordToIndex(coord1);
     int* destinationCoord = coordToIndex(coord2);
 
@@ -130,6 +132,65 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
     return newPiece;
     }
+}
+
+void ChessGame::detectGameState() {
+    
+    // Detect Checkmate
+    if (turn == white && whiteInCheck && !anySafeSquares(whiteKing)) {
+        cout << "White is in checkmate\n";
+        endGame();
+    }
+    if (turn == black && blackInCheck && !anySafeSquares(blackKing)) {
+        cout << "Black is in checkmate\n";
+        endGame();
+    }
+
+    // Detect Stalemate
+    if (turn == white && !whiteInCheck && !anySafeSquares(whiteKing)) {
+        // return stalemate if no other white pieces can be moved
+    }
+    if (turn == black && !blackInCheck && !anySafeSquares(blackKing)) {
+        // return stalemate if no other black pieces can be moved
+    }
+
+    // Detect draw by 50 moves
+    // Detect Draw by repetition
+}
+
+bool ChessGame::anySafeSquares(ChessPiece* king) {
+    // Grab coords of king
+    int rank = king->getRankIndex();
+    int file = king->getFileIndex();
+    int originCoord[2] = {rank, file};
+
+    int kingMoves[8][2] = {{1, 1}, {1, 0}, {0, 1}, {-1, -1}, {-1, 0}, {0, -1}, {1, -1}, {-1, 1}};
+
+    for (int move=0; move < 8; move++) {
+        int newRank = kingMoves[move][0];
+        int newFile = kingMoves[move][1];
+
+        if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+            int destinationCoord[2] = {newRank, newFile};
+            
+            // check adjacent square empty
+            if (chessBoard[newRank][newFile] != nullptr) {
+
+                // "move the king to that square"
+                makeMove(originCoord, destinationCoord);
+
+                // if not in check, return true
+                if (!detectCheck(king)) {
+                    makeMove(destinationCoord, originCoord);
+                    return true;
+                }
+
+                // else "move it back"
+                makeMove(destinationCoord, originCoord);
+            }
+        }
+    }
+    return false;
 }
 
 int* ChessGame::coordToIndex(const char * coord) {
@@ -441,10 +502,11 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
 
 void ChessGame::printBoard() {
 
-    for (int rank=0; rank<8; rank++) {
+    for (int rank=7; rank>=0; rank--) {
+        cout << rank << "   ";
         for (int file=0; file<8; file++) {
-            cout << " " << chessBoard[rank][file] << " ";
+            cout << " |" << chessBoard[rank][file] << "| ";
         }
-        cout << "\n";
+        cout << "\n" << "--------------------------------------------------------" << "\n";
     }
 }
