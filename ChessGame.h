@@ -24,8 +24,10 @@ class ChessGame {
 
     private:
         PieceColour turn;
+
         bool captureOccured = false;
         PieceType capturedPieceName;
+        
         bool whiteInCheck = false;
         bool blackInCheck = false;
 

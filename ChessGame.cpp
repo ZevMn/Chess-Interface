@@ -206,7 +206,8 @@ bool ChessGame::anyPiecesCanMove() {
     // Go through all white pieces
     // Return true if any of them can move
 
-    return false;
+    return true;
+    //return false;
 }
 
 int* ChessGame::coordToIndex(const char * coord) {
