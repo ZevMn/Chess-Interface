@@ -31,7 +31,7 @@ class ChessPiece {
 
         virtual bool isValidMovePattern(const int* coords1, const int* coords2) const = 0;
 
-        //friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
+        friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
 
     protected:
         char abbrName;

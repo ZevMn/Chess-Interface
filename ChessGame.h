@@ -13,7 +13,8 @@ enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, pl
 class ChessGame {
 
     public:
-        //ChessGame();
+        ChessGame();
+        ~ChessGame();
 
         ChessPiece* chessBoard[ranks][files];
 
