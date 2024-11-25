@@ -19,13 +19,9 @@ ChessGame::~ChessGame() {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             chessBoard[i][j] = nullptr;
+            delete chessBoard[i][j];
         }
     }
-
-    for (int i=0; i<8; i++) {
-        delete [] chessBoard[i];
-    }
-    delete [] chessBoard;
 }
 
 PieceColour ChessGame::getTurn() {
@@ -101,7 +97,7 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
         cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << coord1 << " to " << coord2;
         switchTurn();
         if (captureOccured) {
-            cout << " taking" << turn << "'s " << capturedPieceName;
+            cout << " taking " << turn << "'s " << capturedPieceName;
         }
         cout << "\n\n";
         printBoard();
@@ -126,41 +122,41 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 
     switch(abbrName) {
         case 'p':
-            newPiece = new Pawn(black, rank, file);
+            newPiece = new Pawn(black, rank, file, *this);
             break;
         case 'P':
-            newPiece = new Pawn(white, rank, file);
+            newPiece = new Pawn(white, rank, file, *this);
             break;
         case 'r':
-            newPiece = new Rook(black, rank, file);
+            newPiece = new Rook(black, rank, file, *this);
             break;
         case 'R':
-            newPiece = new Rook(white, rank, file);
+            newPiece = new Rook(white, rank, file, *this);
             break;
         case 'n':
-            newPiece = new Knight(black, rank, file);
+            newPiece = new Knight(black, rank, file, *this);
             break;
         case 'N':
-            newPiece = new Knight(white, rank, file);
+            newPiece = new Knight(white, rank, file, *this);
             break;
         case 'b':
-            newPiece = new Bishop(black, rank, file);
+            newPiece = new Bishop(black, rank, file, *this);
             break;
         case 'B':
-            newPiece = new Bishop(white, rank, file);
+            newPiece = new Bishop(white, rank, file, *this);
             break;
         case 'q':
-            newPiece = new Queen(black, rank, file);
+            newPiece = new Queen(black, rank, file, *this);
             break;
         case 'Q':
-            newPiece = new Queen(white, rank, file);
+            newPiece = new Queen(white, rank, file, *this);
             break;
         case 'k':
-            newPiece = new King(black, rank, file);
+            newPiece = new King(black, rank, file, *this);
             blackKing = newPiece;
             break;
         case 'K':
-            newPiece = new King(white, rank, file);
+            newPiece = new King(white, rank, file, *this);
             whiteKing = newPiece;
             break;
         default:
@@ -582,7 +578,7 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
 void ChessGame::printBoard() {
 
     for (int rank=7; rank>=0; rank--) {
-        cout << rank << "   ";
+        cout << rank + 1 << "   ";
         for (int file=0; file<8; file++) {
             if (chessBoard[rank][file] == nullptr) {
                 cout << "    |    |    ";
@@ -591,8 +587,9 @@ void ChessGame::printBoard() {
                 cout << " |" << chessBoard[rank][file] << "| ";
             }
         }
-        cout << "\n" << "--------------------------------------------------------------------------------------------------------------" << "\n";
+        cout << "\n" << "----------------------------------------------------------------------------------------------------------------------" << "\n";
     }
+    cout <<             "      A              B              C              D              E              F              G              H      " << "\n";
 }
 
 void ChessGame::endGame() {

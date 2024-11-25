@@ -3,8 +3,9 @@
 #ifndef CHESSPIECE_H
 #define CHESSPIECE_H
 
-//#include "ChessGame.h"
 #include <string>
+
+class ChessGame;
 
 enum PieceType {pawn, rook, knight, bishop, queen, king};
 std::ostream &operator<<(std::ostream& os, PieceType type);
@@ -13,10 +14,12 @@ std::ostream &operator<<(std::ostream& os, PieceType type);
 enum PieceColour {white, black};
 std::ostream &operator<<(std::ostream& os, PieceColour colour);
 
+#include "ChessGame.h"
+
 class ChessPiece {
     // ABSTRACT CLASS
     public:
-        ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame chessGame);
+        ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame& chessGame);
         virtual ~ChessPiece();
 
         bool hasMoved;
@@ -43,7 +46,7 @@ class ChessPiece {
         int rankIndex;
         int fileIndex;
 
-        ChessGame chessGame;
+        ChessGame& chessGame;
 };
 
 class Pawn : public ChessPiece {
