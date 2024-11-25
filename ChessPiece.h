@@ -16,7 +16,7 @@ std::ostream &operator<<(std::ostream& os, PieceColour colour);
 class ChessPiece {
     // ABSTRACT CLASS
     public:
-        ChessPiece(PieceColour c, PieceType t, int rank, int file);
+        ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame chessGame);
         virtual ~ChessPiece();
 
         bool hasMoved;
@@ -42,12 +42,14 @@ class ChessPiece {
 
         int rankIndex;
         int fileIndex;
+
+        ChessGame chessGame;
 };
 
 class Pawn : public ChessPiece {
 
     public:
-        Pawn(PieceColour c, int rank, int file);
+        Pawn(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
         // bool canEnPassant
@@ -57,7 +59,7 @@ class Pawn : public ChessPiece {
 class Rook : public ChessPiece {
 
     public:
-        Rook(PieceColour c, int rank, int file);
+        Rook(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // left_rook
@@ -66,7 +68,7 @@ class Rook : public ChessPiece {
 class Knight : public ChessPiece {
 
     public:
-        Knight(PieceColour c, int rank, int file);
+        Knight(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -74,7 +76,7 @@ class Knight : public ChessPiece {
 class Bishop : public ChessPiece {
     
     public:
-        Bishop(PieceColour c, int rank, int file);
+        Bishop(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -82,7 +84,7 @@ class Bishop : public ChessPiece {
 class Queen : public ChessPiece {
 
     public:
-        Queen(PieceColour c, int rank, int file);
+        Queen(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -90,7 +92,7 @@ class Queen : public ChessPiece {
 class King : public ChessPiece {
 
     public:
-        King(PieceColour c, int rank, int file);
+        King(PieceColour c, int rank, int file, ChessGame chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // has_moved

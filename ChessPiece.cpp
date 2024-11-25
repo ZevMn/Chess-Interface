@@ -8,7 +8,8 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file) : hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file) {}
+ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame chessGame) 
+: hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
 
 ChessPiece::~ChessPiece() {}
 
@@ -90,7 +91,7 @@ std::ostream &operator<<(std::ostream& os, PieceColour colour) {
 }
 
 /* PAWN */
-Pawn::Pawn(PieceColour c, int rank, int file) : ChessPiece(c, pawn, rank, file) {}
+Pawn::Pawn(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, pawn, rank, file, chessGame) {}
 
 bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
@@ -107,8 +108,16 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
                 return true;
             }
         }
-        else if (advance == -1 || (!hasMoved && advance == -2)) { // WHY DOES SETTING THESE TO - CAUSE A SEG FAULT
-            cout << "This part works fine";
+        else if (advance == -1 || (!hasMoved && advance == -2)) {
+            return true;
+        }
+    }
+
+    if (abs(oldFile - newFile) == 1) {
+        if ((colour == white) && (advance == 1) && (chessGame.chessBoard[newRank][newFile] != nullptr)) {
+            return true;
+        }
+        if ((colour == black) && (advance == -1) && (chessGame.chessBoard[newRank][newFile] != nullptr)) {
             return true;
         }
     }
@@ -117,7 +126,7 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 }
 
 // ROOK
-Rook::Rook(PieceColour c, int rank, int file) : ChessPiece(c, rook, rank, file) {}
+Rook::Rook(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, rook, rank, file, chessGame) {}
 
 bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -128,7 +137,7 @@ bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // KNIGHT
-Knight::Knight(PieceColour c, int rank, int file) : ChessPiece(c, knight, rank, file) {}
+Knight::Knight(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, knight, rank, file, chessGame) {}
 
 bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -142,7 +151,7 @@ bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // BISHOP
-Bishop::Bishop(PieceColour c, int rank, int file) : ChessPiece(c, bishop, rank, file) {}
+Bishop::Bishop(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, bishop, rank, file, chessGame) {}
 
 bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -153,7 +162,7 @@ bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // QUEEN
-Queen::Queen(PieceColour c, int rank, int file) : ChessPiece(c, queen, rank, file) {}
+Queen::Queen(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, queen, rank, file, chessGame) {}
 
 bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 
@@ -168,7 +177,7 @@ bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 }
 
 // KING
-King::King(PieceColour c, int rank, int file) : ChessPiece(c, king, rank, file) {}
+King::King(PieceColour c, int rank, int file, ChessGame chessGame) : ChessPiece(c, king, rank, file, chessGame) {}
 
 bool King::isValidMovePattern(const int* coord1, const int* coord2) const {
 

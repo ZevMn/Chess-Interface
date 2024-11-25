@@ -291,16 +291,16 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
         return false;
     }
 
-    // INVALID PIECE MOVEMENT PATTERN
-    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
-        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
+    // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
+    ChessPiece* pieceAtDestination = getPiece(destCoord);
+    if (pieceAtDestination != nullptr && pieceAtDestination->getColour() == pieceAtOrigin->getColour()) {
+        cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
         return false;
     }
 
-    // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
-    ChessPiece* pieceAtDestination = getPiece(destCoord);
-    if (pieceAtDestination != NULL && pieceAtDestination->getColour() != pieceAtOrigin->getColour()) {
-        cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
+    // INVALID PIECE MOVEMENT PATTERN
+    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
+        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
         return false;
     }
 
@@ -309,7 +309,7 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
         
         if (initCoord[0] == destCoord[0]) { // If travelling along the same rank
 
-            for (int i=1; i <= abs(destCoord[0]-initCoord[0]);i++) {
+            for (int i=1; i < abs(destCoord[0]-initCoord[0]);i++) {
                 if ((destCoord[0] > initCoord[0]) && (chessBoard[initCoord[0] + i][initCoord[1]] != nullptr)) {
                         cout << "ERROR: 1\n";
                         return false;
@@ -323,7 +323,7 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
 
         else if (initCoord[1] == destCoord[1]) { // If travelling along the same file
         
-            for (int i=1; i <= abs(destCoord[1]-initCoord[1]);i++) {
+            for (int i=1; i < abs(destCoord[1]-initCoord[1]);i++) {
                 if ((destCoord[1] > initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] + i] != nullptr)) {
                         cout << "ERROR: 3\n";
                         return false;
@@ -337,7 +337,7 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
 
         else if (abs(destCoord[0] - initCoord[0]) == abs(destCoord[1] - initCoord[1])) { // If travelling along a diagonal
 
-            for (int i=1; i <= abs(destCoord[0]-initCoord[0]); i++) {
+            for (int i=1; i < abs(destCoord[0]-initCoord[0]); i++) {
 
                 if ((destCoord[0] > initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (+,+)
                     if (chessBoard[initCoord[0]+i][initCoord[1]+i] != nullptr) {
@@ -525,54 +525,56 @@ bool ChessGame::detectKnightInRange(ChessPiece* square) {
 
 bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction) {
 
-    if (square->getColour() == nearestNeighbour->getColour()) { // Return false if piece is friendly
-        return false;
-    }
-
-    PieceType pieceName = nearestNeighbour->getType();
-
-    if (pieceName == queen) {
-        return true;
-    }
-
-    if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - square->getRankIndex()), abs(nearestNeighbour->getFileIndex() - square->getFileIndex())) == 1)) {
-        return true;
-    }
-
-    if ((pieceName == pawn)) {
-        if ((square->getColour() == white) && (nearestNeighbour->getRankIndex() == square->getRankIndex()+1)) {
-            if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
-                return true;
-            }
-        }
-        if ((square->getColour() == black) && (nearestNeighbour->getRankIndex() == square->getRankIndex()-1)) {
-            if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
-                return true;
-            }
-        }
-    }
-
-    switch (direction) {
-        case leftRank:
-        case rightRank:
-        case upFile:
-        case downFile:
-            if (pieceName == rook) {
-                return true;
-            }
-            break;
-
-        case plusplus:
-        case minusminus:
-        case plusminus:
-        case minusplus:
-            if (pieceName == bishop) {
-                return true;
-            }
-            break;
-
-        default:
+    if (nearestNeighbour != nullptr) {
+        if (square->getColour() == nearestNeighbour->getColour()) { // Return false if piece is friendly
             return false;
+        }
+
+        PieceType pieceName = nearestNeighbour->getType();
+
+        if (pieceName == queen) {
+            return true;
+        }
+
+        if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - square->getRankIndex()), abs(nearestNeighbour->getFileIndex() - square->getFileIndex())) == 1)) {
+            return true;
+        }
+
+        if ((pieceName == pawn)) {
+            if ((square->getColour() == white) && (nearestNeighbour->getRankIndex() == square->getRankIndex()+1)) {
+                if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
+                    return true;
+                }
+            }
+            if ((square->getColour() == black) && (nearestNeighbour->getRankIndex() == square->getRankIndex()-1)) {
+                if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
+                    return true;
+                }
+            }
+        }
+
+        switch (direction) {
+            case leftRank:
+            case rightRank:
+            case upFile:
+            case downFile:
+                if (pieceName == rook) {
+                    return true;
+                }
+                break;
+
+            case plusplus:
+            case minusminus:
+            case plusminus:
+            case minusplus:
+                if (pieceName == bishop) {
+                    return true;
+                }
+                break;
+
+            default:
+                return false;
+        }
     }
     return false;
 }
