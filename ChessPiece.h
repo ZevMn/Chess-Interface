@@ -52,7 +52,7 @@ class ChessPiece {
 class Pawn : public ChessPiece {
 
     public:
-        Pawn(PieceColour c, int rank, int file, ChessGame chessGame);
+        Pawn(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
         // bool canEnPassant
@@ -62,7 +62,7 @@ class Pawn : public ChessPiece {
 class Rook : public ChessPiece {
 
     public:
-        Rook(PieceColour c, int rank, int file, ChessGame chessGame);
+        Rook(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // left_rook
@@ -71,7 +71,7 @@ class Rook : public ChessPiece {
 class Knight : public ChessPiece {
 
     public:
-        Knight(PieceColour c, int rank, int file, ChessGame chessGame);
+        Knight(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -79,7 +79,7 @@ class Knight : public ChessPiece {
 class Bishop : public ChessPiece {
     
     public:
-        Bishop(PieceColour c, int rank, int file, ChessGame chessGame);
+        Bishop(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -87,7 +87,7 @@ class Bishop : public ChessPiece {
 class Queen : public ChessPiece {
 
     public:
-        Queen(PieceColour c, int rank, int file, ChessGame chessGame);
+        Queen(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
 };
@@ -95,7 +95,7 @@ class Queen : public ChessPiece {
 class King : public ChessPiece {
 
     public:
-        King(PieceColour c, int rank, int file, ChessGame chessGame);
+        King(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* coord1, const int* coord2) const override;
     // has_moved

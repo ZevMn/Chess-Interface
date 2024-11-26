@@ -18,8 +18,8 @@ ChessGame::ChessGame() : captureOccured(false), whiteInCheck(false), blackInChec
 ChessGame::~ChessGame() {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
-            chessBoard[i][j] = nullptr;
             delete chessBoard[i][j];
+            chessBoard[i][j] = nullptr;
         }
     }
 }
@@ -109,7 +109,9 @@ void ChessGame::submitMove(const char * coord1, const char * coord2) {
     }
 
     delete [] originCoord;
+    originCoord = nullptr;
     delete [] destinationCoord;
+    destinationCoord = nullptr;
 }
 
 ChessPiece* ChessGame::getPiece(const int* coordinate) {
@@ -260,6 +262,12 @@ bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const
         return false;
     }
 
+    // If in check
+    // Do move
+    // If (detectCheck()) 
+    // Undo move
+    // return false;
+
     // ARE THE COORDINATES VALID
     for (int i=0; i<2; i++) {
         if (initCoord[i] < 0 || initCoord[i] > 7 || destCoord[i] < 0 || destCoord[i] > 7) {
@@ -396,8 +404,8 @@ void ChessGame::switchTurn() {
 }
 
 void ChessGame::deletePiece(ChessPiece* pieceToDelete) {
-    pieceToDelete = nullptr;
     delete pieceToDelete;
+    pieceToDelete = nullptr;
 }
 
 void ChessGame::modifyAttributes(ChessPiece* movedPiece) {

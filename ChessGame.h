@@ -13,7 +13,7 @@ const int ranks = 8, files = 8;
 
 enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
 
-class ChessGame {
+class ChessGame final {
 
     public:
         ChessGame();
