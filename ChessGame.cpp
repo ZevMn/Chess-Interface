@@ -29,6 +29,14 @@ PieceColour ChessGame::getTurn() {
 }
 
 void ChessGame::loadState(const char * fenString) {
+    for (int i=0; i<8; i++) {
+        for (int j=0; j<8; j++) {
+            if (chessBoard[i][j] != nullptr) {
+                delete chessBoard[i][j];
+                chessBoard[i][j] = nullptr;
+            }
+        }
+    }
     cout << "A new board is loaded!\n\n";
 
     // DECODE FEN STRING
@@ -58,7 +66,7 @@ void ChessGame::loadState(const char * fenString) {
             }
         }
 
-        else { // Must be a piece as we are told that only valid FEN strings will be received as inputs
+        else { // Must be a pie>getAbbrName() ce as we are told that only valid FEN strings will be received as inputs
             chessBoard[rank][file] = createChessPiece(currentCharacter, rank, file);
             file++;
         }
@@ -387,6 +395,7 @@ void ChessGame::makeMove(int* initCoord, int* destCoord) {
         captureOccured = true;
         capturedPieceName = ptrAtDestination->getType();
         deletePiece(ptrAtDestination);
+        ptrAtDestination = nullptr;
     }
 
     modifyAttributes(chessBoard[destCoord[0]][destCoord[1]]);
