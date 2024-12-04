@@ -39,7 +39,7 @@ void ChessGame::loadState(const char* fenString) {
             }
         }
     }
-    cout << "A new board is loaded!\n\n";
+    cout << "A new board is loaded!\n";
 
     // DECODE FEN STRING
     // PART 1: BOARD ARRANGEMENT
@@ -478,6 +478,7 @@ void ChessGame::doCapture(ChessPiece* pieceToCapture) {
 }
 
 void ChessGame::switchTurn() {
+    cout << "\n";
     if (turn == black) {
         cout << "\n";
     }
