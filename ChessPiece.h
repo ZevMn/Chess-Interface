@@ -4,6 +4,7 @@
 #define CHESSPIECE_H
 
 #include <string>
+#include <vector>
 
 class ChessGame;
 
@@ -32,7 +33,10 @@ class ChessPiece {
         int getRankIndex() const;
         int getFileIndex() const;
 
-        virtual bool isValidMovePattern(const int* coords1, const int* coords2) const = 0;
+        std::vector<std::vector<int>> getUnitMoves() const;
+
+        bool checkMovementPattern(const int* originCoord, const int* destinationCoord, const char* stringCoord2) const;
+        virtual bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const = 0;
 
         friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
 
@@ -42,6 +46,8 @@ class ChessPiece {
 
         PieceColour colour;
         PieceType type;
+
+        std::vector<std::vector<int>> unitMoves; // NB: For knight, pawn and king this is the set of all legal moves
 
         int rankIndex;
         int fileIndex;
@@ -54,7 +60,7 @@ class Pawn : public ChessPiece {
     public:
         Pawn(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
         // bool canEnPassant
         // promote()
 };
@@ -64,8 +70,8 @@ class Rook : public ChessPiece {
     public:
         Rook(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
-    // left_rook
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
+        // left_rook
 };
 
 class Knight : public ChessPiece {
@@ -73,7 +79,7 @@ class Knight : public ChessPiece {
     public:
         Knight(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
 class Bishop : public ChessPiece {
@@ -81,7 +87,7 @@ class Bishop : public ChessPiece {
     public:
         Bishop(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
 class Queen : public ChessPiece {
@@ -89,7 +95,7 @@ class Queen : public ChessPiece {
     public:
         Queen(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
 class King : public ChessPiece {
@@ -97,7 +103,7 @@ class King : public ChessPiece {
     public:
         King(PieceColour c, int rank, int file, ChessGame& chessGame);
 
-        bool isValidMovePattern(const int* coord1, const int* coord2) const override;
+        bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
     // has_moved
     // in_check
 };

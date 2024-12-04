@@ -3,11 +3,13 @@
 #include <iostream>
 #include "ChessGame.h"
 #include "ChessPiece.h"
+#include <map>
+#include <stdint.h>
 
 
 using namespace std;
 
-ChessGame::ChessGame() : captureOccured(false), whiteInCheck(false), blackInCheck(false), blackKing(nullptr), whiteKing(nullptr) {
+ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), blackInCheck(false), blackKing(nullptr), whiteKing(nullptr) {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             chessBoard[i][j] = nullptr;
@@ -28,7 +30,7 @@ PieceColour ChessGame::getTurn() {
     return turn;
 }
 
-void ChessGame::loadState(const char * fenString) {
+void ChessGame::loadState(const char* fenString) {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             if (chessBoard[i][j] != nullptr) {
@@ -83,50 +85,88 @@ void ChessGame::loadState(const char * fenString) {
         turn = black;
     }
 
-    cout << "Finished loading.\n";
-    printBoard();
+    //printBoard();
 
     // Leave part 3+ for now
     // ----------------------------
     // ----------------------------
 
-
+    detectGameState();
 }
 
-void ChessGame::submitMove(const char * coord1, const char * coord2) {
+void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
 
-    detectGameState();
+    int* originCoord = coordToIndex(stringCoord1);
+    int* destinationCoord = coordToIndex(stringCoord2);
 
-    int* originCoord = coordToIndex(coord1);
-    int* destinationCoord = coordToIndex(coord2);
+    ChessPiece* pieceToCapture = getPiece(destinationCoord);
+    ChessPiece* currentKing = ((turn == white) ? whiteKing : blackKing);
 
-    if (checkMoveValid(originCoord, destinationCoord, coord1, coord2)) {
-        makeMove(originCoord, destinationCoord);
-        cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << coord1 << " to " << coord2;
-        switchTurn();
-        if (captureOccured) {
-            cout << " taking " << turn << "'s " << capturedPieceName;
-        }
-        cout << "\n\n";
-        printBoard();
-        cout << "\n\n";
-        captureOccured = false;
+    if (pieceToCapture != nullptr) {
+        pieceAtDestinationSquare = true;
     }
     else {
-        cout << "Move " << coord1 << " to " << coord2 << " is not valid\n";
+        pieceAtDestinationSquare = false;
+    }
+
+    // FIRST DETERMINE IF MOVE IS VALID DISREGARDING STATE OF CHECK
+    if (checkMoveValid(originCoord, destinationCoord, stringCoord1, stringCoord2)) {
+
+        makeMove(originCoord, destinationCoord);
+
+        // IF IN CHECK, THE MOVE MUST TAKE YOU OUT OF CHECK
+        if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
+            if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
+                makeMove(destinationCoord, originCoord); // UNDO MOVE
+                cout << "ERROR: Cannot make move - you are in check.";
+                return;
+            }
+            else {
+                turn == white ? whiteInCheck = false : blackInCheck = false;
+            }
+        }
+        // IF NOT IN CHECK, YOU MUST NOT BE MOVING INTO CHECK
+        else {
+            if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
+                makeMove(destinationCoord, originCoord); // UNDO MOVE
+                cout << "ERROR: Cannot make move - you cannot move into check";
+                return;
+            }
+        }
+
+        cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << stringCoord1 << " to " << stringCoord2;
+
+        // CAPTURE LOGIC
+        if (pieceAtDestinationSquare) {
+            doCapture(pieceToCapture);
+        }
+
+        // REMEMBER PIECE HAS MOVED
+        chessBoard[destinationCoord[0]][destinationCoord[1]]->hasMoved = true;
+    }
+
+    else {
+        cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid";
     }
 
     delete [] originCoord;
     originCoord = nullptr;
     delete [] destinationCoord;
     destinationCoord = nullptr;
+
+    detectGameState();
+    //cout << "\n\n";
+    //printBoard();
+    //cout << "\n\n";
+
+    switchTurn();
 }
 
-ChessPiece* ChessGame::getPiece(const int* coordinate) {
-    return chessBoard[coordinate[0]][coordinate[1]];
+ChessPiece* ChessGame::getPiece(const int* coord) {
+    return chessBoard[coord[0]][coord[1]];
 }
 
-ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
+ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, const int& file) {
 
     ChessPiece* newPiece = nullptr;
 
@@ -177,77 +217,110 @@ ChessPiece* ChessGame::createChessPiece(char abbrName, int rank, int file) {
 }
 
 void ChessGame::detectGameState() {
+
+    bool checkDetected = false;
+
+    // Detect Check
+    if (turn == white ? detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true) : detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)){
+        checkDetected = true;
+    }
     
     // Detect Checkmate
-    if (turn == white && whiteInCheck && !anySafeSquares(whiteKing)) {
-        cout << "White is in checkmate\n";
+    if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
+        cout << "\nWhite is in checkmate\n";
         endGame();
     }
-    if (turn == black && blackInCheck && !anySafeSquares(blackKing)) {
-        cout << "Black is in checkmate\n";
+    if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
+        cout << "\nBlack is in checkmate\n";
         endGame();
     }
 
     // Detect Stalemate
-    if (turn == white && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) {
-        cout << "Stalemate\n";
+    if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
+        cout << "\nStalemate\n";
         endGame();
     }
-    if (turn == black && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) {
-        cout << "Stalemate\n";
+    if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
+        cout << "\nStalemate\n";
         endGame();
     }
 
     // Detect draw by 50 moves
     // Detect Draw by repetition
-    cout << "Game continues\n";
+
+    if (checkDetected) { // If game continues then output check message
+        PieceColour oppositeTurn = ((turn == white) ? black : white);
+        cout << "\n" << oppositeTurn << " is in check";
+    }
 }
 
-bool ChessGame::anySafeSquares(ChessPiece* king) {
-    // Get coords of king
-    int rank = king->getRankIndex();
-    int file = king->getFileIndex();
-    int originCoord[2] = {rank, file};
+bool ChessGame::anyPiecesCanMove() {
 
-    int kingMoves[8][2] = {{1, 1}, {1, 0}, {0, 1}, {-1, -1}, {-1, 0}, {0, -1}, {1, -1}, {-1, 1}};
+    // Iterate through the chess board
+    for (int ranks = 0; ranks < 8; ranks++) {
+        for (int files = 0; files < 8; files++) {
 
-    for (int move=0; move < 8; move++) {
-        int newRank = rank + kingMoves[move][0];
-        int newFile = file + kingMoves[move][1];
+            ChessPiece* pieceToMove = chessBoard[ranks][files];
 
-        if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
-            int destinationCoord[2] = {newRank, newFile};
+            if ((pieceToMove != nullptr) && (pieceToMove->getColour() != turn) && (pieceToMove->getType() != king)) {
 
-            // check adjacent square empty
-            if (chessBoard[newRank][newFile] == nullptr) {
+                int rank = pieceToMove->getRankIndex();
+                int file = pieceToMove->getFileIndex();
+                int originCoord[2] = {rank, file};
 
-                // move the king to that square
-                makeMove(originCoord, destinationCoord);
+                // Iterate through unit moves
+                for (uint32_t move = 0; move < pieceToMove->getUnitMoves().size(); move++) {
+                    int newRank = rank + pieceToMove->getUnitMoves()[move][0];
+                    int newFile = file + pieceToMove->getUnitMoves()[move][1];
 
-                // if not in check, move back and return true
-                if (!detectCheck(king)) {
-                    makeMove(destinationCoord, originCoord);
-                    return true;
+                    // Pawn logic
+                    int destinationCoord[2] = {newRank, newFile};
+                    if (pieceToMove->getType() == pawn) {
+                        return pieceToMove->isValidMovePattern(originCoord, destinationCoord);
+                    }
+
+                    // Other pieces logic
+                    ChessPiece* newSquare = chessBoard[newRank][newFile];
+                    if ((newSquare == nullptr) || (newSquare->getColour() == turn)) {
+                        return true;
+                    }
                 }
-
-                // else just move it back
-                makeMove(destinationCoord, originCoord);
             }
         }
     }
     return false;
 }
 
-bool ChessGame::anyPiecesCanMove() {
+bool ChessGame::detectCheckmate(ChessPiece* king) { // This function is only called if in check
 
-    // Go through all white pieces
-    // Return true if any of them can move
-
-    return true;
-    //return false;
+    if(!anySafeSquares(king)) {
+        return !pieceCanBlock(king);
+    }
+    return false;
 }
 
-int* ChessGame::coordToIndex(const char * coord) {
+bool ChessGame::anySafeSquares(ChessPiece* king) {
+    // Get coordinates of king
+    int rank = king->getRankIndex();
+    int file = king->getFileIndex();
+
+    // Iterate through all possible king moves
+    for (int move = 0; move < 8; move++) {
+        int newRank = rank + king->getUnitMoves()[move][0];
+        int newFile = file + king->getUnitMoves()[move][1];
+
+        if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+
+            // Check destination square not in check, and is either empty or occupied by an enemy piece
+            if (!detectCheck(newRank, newFile, king->getColour(), false) && (chessBoard[newRank][newFile] == nullptr || chessBoard[newRank][newFile]->getColour() != king->getColour())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int* ChessGame::coordToIndex(const char* coord) {
 
     int* indexArray = new int[2];
 
@@ -262,153 +335,154 @@ int* ChessGame::coordToIndex(const char * coord) {
     return indexArray;
 }
 
-bool ChessGame::checkMoveValid(const int* initCoord, const int* destCoord, const char * coord1, const char * coord2) {
+bool ChessGame::checkMoveValid(const int* originCoord, const int* destinationCoord, const char* stringCoord1, const char* stringCoord2) {
 
-    // NOT IN CHECK
-    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
-        cout << "ERROR: Cannot make move - you are in check.\n";
+    ChessPiece* pieceAtOrigin = getPiece(originCoord);
+    ChessPiece* pieceAtDestination = getPiece(destinationCoord);
+
+    if (!checkPieceExists(pieceAtOrigin, stringCoord1) || !checkCorrectTurn(pieceAtOrigin)) {
         return false;
     }
-
-    // If in check
-    // Do move
-    // If (detectCheck()) 
-    // Undo move
-    // return false;
-
-    // ARE THE COORDINATES VALID
-    for (int i=0; i<2; i++) {
-        if (initCoord[i] < 0 || initCoord[i] > 7 || destCoord[i] < 0 || destCoord[i] > 7) {
-            cout << "ERROR: Cannot make move - invalid coordinatesm\n";
-            return false;
-        }
-    }
-
-    // IS THERE A PIECE AT THE POSITION TO MOVE
-    ChessPiece* pieceAtOrigin = getPiece(initCoord);
-    if (pieceAtOrigin == nullptr) {
-        cout << "There is no piece at position " << coord1 << "!\n";
+    if (!checkCoordinatesValid(originCoord, destinationCoord) || !checkPieceMoves(originCoord, destinationCoord)) {
         return false;
     }
-
-    // IS IT THE PLAYERS TURN TO MOVE
-    if (pieceAtOrigin->getColour() != turn) {
-        cout << "It is not " << turn << "'s turn to move!\n";
+    if (pieceAtDestination != nullptr && !checkNoFriendlyCapture(pieceAtDestination)) {
         return false;
     }
-
-    // IS THE PIECE ACTUALLY MOVING
-    if (initCoord[0] == destCoord[0] && initCoord[1] == destCoord[1]) {
-        cout << "ERROR: Cannot make move - piece must move from current square\n";
+    if(!pieceAtOrigin->checkMovementPattern(originCoord, destinationCoord, stringCoord2)) {
         return false;
     }
-
-    // CHECK THERE IS NO SAME COLOUR PIECE AT DESTINATION
-    ChessPiece* pieceAtDestination = getPiece(destCoord);
-    if (pieceAtDestination != nullptr && pieceAtDestination->getColour() == pieceAtOrigin->getColour()) {
-        cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
+    if ((pieceAtOrigin->getType() != knight) && !checkPathClear(originCoord, destinationCoord)) {
         return false;
-    }
-
-    // INVALID PIECE MOVEMENT PATTERN
-    if (!pieceAtOrigin->isValidMovePattern(initCoord, destCoord)) {
-        cout << turn << "'s " << pieceAtOrigin->getType() << " cannot move to " << coord2 << "!\n";
-        return false;
-    }
-
-    // NO PIECE IN THE WAY (IF NOT KNIGHT)
-    if (pieceAtOrigin->getType() != knight) {
-        
-        if (initCoord[0] == destCoord[0]) { // If travelling along the same rank
-
-            for (int i=1; i < abs(destCoord[0]-initCoord[0]);i++) {
-                if ((destCoord[0] > initCoord[0]) && (chessBoard[initCoord[0] + i][initCoord[1]] != nullptr)) {
-                        cout << "ERROR: 1\n";
-                        return false;
-                }
-                else if ((destCoord[0] < initCoord[0]) && (chessBoard[initCoord[0] - i][initCoord[1]] != nullptr)) {
-                        cout << "ERROR: 2\n";
-                        return false;
-                }
-            }
-        }
-
-        else if (initCoord[1] == destCoord[1]) { // If travelling along the same file
-        
-            for (int i=1; i < abs(destCoord[1]-initCoord[1]);i++) {
-                if ((destCoord[1] > initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] + i] != nullptr)) {
-                        cout << "ERROR: 3\n";
-                        return false;
-                }
-                else if ((destCoord[1] < initCoord[1]) && (chessBoard[initCoord[0]][initCoord[1] - i] != nullptr)) {
-                        cout << "ERROR: 4\n";
-                        return false;
-                }
-            }
-        }
-
-        else if (abs(destCoord[0] - initCoord[0]) == abs(destCoord[1] - initCoord[1])) { // If travelling along a diagonal
-
-            for (int i=1; i < abs(destCoord[0]-initCoord[0]); i++) {
-
-                if ((destCoord[0] > initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (+,+)
-                    if (chessBoard[initCoord[0]+i][initCoord[1]+i] != nullptr) {
-                        cout << "ERROR: 5\n";
-                        return false;
-                    }
-                }
-                if ((destCoord[0] < initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (-,-)
-                    if (chessBoard[initCoord[0]-i][initCoord[1]-i] != nullptr) {
-                        cout << "ERROR: 6\n";
-                        return false;
-                    }
-                }
-                if ((destCoord[0] > initCoord[0]) && (destCoord[1] < initCoord[1])) { // (rank,file) = (+,-)
-                    if (chessBoard[initCoord[0]+i][initCoord[1]-i] != nullptr) {
-                        cout << "ERROR: 7\n";
-                        return false;
-                    }
-                }
-                if ((destCoord[0] < initCoord[0]) && (destCoord[1] > initCoord[1])) { // (rank,file) = (-,+)
-                    if (chessBoard[initCoord[0]-i][initCoord[1]+i] != nullptr) {
-                        cout << "ERROR: 8\n";
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-
-    // NOT MOVING INTO CHECK
+    }    
 
     return true;
 }
 
-void ChessGame::makeMove(int* initCoord, int* destCoord) {
+bool ChessGame::checkCorrectTurn(ChessPiece* pieceAtOrigin) {
+    if (pieceAtOrigin->getColour() != turn) {
+        cout << "It is not " << pieceAtOrigin->getColour() << "'s turn to move!\n";
+        return false;
+    }
+    return true;
+}
 
-    ChessPiece* ptrAtDestination = chessBoard[destCoord[0]][destCoord[1]]; // Retain a pointer to the piece at the destination square
+bool ChessGame::checkPieceExists(ChessPiece* pieceAtOrigin, const char* stringCoord1) {
+    if (pieceAtOrigin == nullptr) {
+        cout << "There is no piece at position " << stringCoord1 << "!\n";
+        return false;
+    }
+    return true;
+}
 
-    chessBoard[destCoord[0]][destCoord[1]] = chessBoard[initCoord[0]][initCoord[1]]; // Make the move
-    chessBoard[initCoord[0]][initCoord[1]] = nullptr;
+bool ChessGame::checkCoordinatesValid(const int* originCoord, const int* destinationCoord) {
+    for (int i=0; i<2; i++) {
+        if (originCoord[i] < 0 || originCoord[i] > 7 || destinationCoord[i] < 0 || destinationCoord[i] > 7) {
+            cout << "ERROR: Cannot make move - invalid coordinatesm\n";
+            return false;
+        }
+    }
+    return true;
+}
 
-    if (ptrAtDestination != nullptr) { // If a capture has occured, delete the piece from memory
-        captureOccured = true;
-        capturedPieceName = ptrAtDestination->getType();
-        deletePiece(ptrAtDestination);
-        ptrAtDestination = nullptr;
+bool ChessGame::checkPieceMoves(const int* originCoord, const int* destinationCoord) {
+    if (originCoord[0] == destinationCoord[0] && originCoord[1] == destinationCoord[1]) {
+        cout << "ERROR: Cannot make move - piece must move from current square\n";
+        return false;
+    }
+    return true;
+}
+
+bool ChessGame::checkNoFriendlyCapture(ChessPiece* pieceAtDestination) {
+    if (pieceAtDestination->getColour() == turn) {
+        cout << "ERROR: Cannot make move - you cannot move to a square already occupied by one of your pieces.\n";
+        return false;
+    }
+    return true;
+}
+
+bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoord) {
+
+    if (originCoord[0] == destinationCoord[0]) { // If travelling along the same rank
+
+        for (int i=1; i < abs(destinationCoord[0]-originCoord[0]);i++) {
+            if ((destinationCoord[0] > originCoord[0]) && (chessBoard[originCoord[0] + i][originCoord[1]] != nullptr)) {
+                cout << "ERROR: 1\n";
+                return false;
+            }
+            else if ((destinationCoord[0] < originCoord[0]) && (chessBoard[originCoord[0] - i][originCoord[1]] != nullptr)) {
+                cout << "ERROR: 2\n";
+                    return false;
+            }
+        }
     }
 
-    modifyAttributes(chessBoard[destCoord[0]][destCoord[1]]);
+    else if (originCoord[1] == destinationCoord[1]) { // If travelling along the same file
+            
+        for (int i=1; i < abs(destinationCoord[1]-originCoord[1]);i++) {
+            if ((destinationCoord[1] > originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] + i] != nullptr)) {
+                cout << "ERROR: 3\n";
+                return false;
+            }
+            else if ((destinationCoord[1] < originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] - i] != nullptr)) {
+                cout << "ERROR: 4\n";
+                return false;
+            }
+        }
+    }
 
-    if (turn == white) { // Detect if move has put opponent in check
-        blackInCheck = detectCheck(blackKing);
+    else if (abs(destinationCoord[0] - originCoord[0]) == abs(destinationCoord[1] - originCoord[1])) { // If travelling along a diagonal
+
+        for (int i=1; i < abs(destinationCoord[0]-originCoord[0]); i++) {
+            if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (+,+)
+                if (chessBoard[originCoord[0]+i][originCoord[1]+i] != nullptr) {
+                    cout << "ERROR: 5\n";
+                    return false;
+                }
+            }
+            if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (-,-)
+                if (chessBoard[originCoord[0]-i][originCoord[1]-i] != nullptr) {
+                    cout << "ERROR: 6\n";
+                    return false;
+                }
+            }
+            if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (+,-)
+                if (chessBoard[originCoord[0]+i][originCoord[1]-i] != nullptr) {
+                    cout << "ERROR: 7\n";
+                    return false;
+                }
+            }
+            if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (-,+)
+                if (chessBoard[originCoord[0]-i][originCoord[1]+i] != nullptr) {
+                    cout << "ERROR: 8\n";
+                    return false;
+                }
+            }
+        }
     }
-    else {
-        whiteInCheck = detectCheck(whiteKing);
-    }
+    return true;
+}
+
+void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
+
+    chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
+    chessBoard[originCoord[0]][originCoord[1]] = nullptr;
+}
+
+void ChessGame::doCapture(ChessPiece* pieceToCapture) {
+    cout << " taking " << pieceToCapture->getColour() << "'s " << pieceToCapture->getType();
+
+    pieceAtDestinationSquare = false;
+    deletePiece(pieceToCapture);
+    pieceToCapture = nullptr;
 }
 
 void ChessGame::switchTurn() {
+    cout << "\n";
+    if (turn == black) {
+        cout << "\n";
+    }
+
     turn = (turn == white) ? black : white;
 }
 
@@ -417,67 +491,150 @@ void ChessGame::deletePiece(ChessPiece* pieceToDelete) {
     pieceToDelete = nullptr;
 }
 
-void ChessGame::modifyAttributes(ChessPiece* movedPiece) {
-    movedPiece->hasMoved = true;
-}
-
-bool ChessGame::detectCheck(ChessPiece* square) {
+bool ChessGame::detectCheck(int rank, int file, PieceColour colour, bool lookingAtKing) {
 
     bool detected = false;
     
-    if (detectKnightInRange(square)) {
+    if (detectKnightInRange(rank, file, colour)) {
         detected = true;
     }
 
-    if (doesPieceSeeSquare(square, findNearestNeighbour(square, leftRank), leftRank)) {
-        detected = true;
+    Directions directions[] = {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
+
+    for (const Directions& direction : directions) {
+        if (doesPieceSeeSquare(rank, file, colour, findNearestNeighbour(rank, file, colour, direction), direction)) {
+            detected = true;
+            break;
+        }
     }
 
-    if (detected) {
-        (square->getColour() == white) ? whiteInCheck = true : blackInCheck = true;
+    if (lookingAtKing) {
+        if (detected) {
+            colour == white ? whiteInCheck = true : blackInCheck = true;
+        }
+        else {
+            colour == white ? whiteInCheck = false : blackInCheck = false;
+        }
     }
 
     return detected;
 }
 
-ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direction) {
-    int rank = square->getRankIndex();
-    int file = square->getFileIndex();
+bool ChessGame::pieceCanBlock(ChessPiece* king) {
+
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            if ((chessBoard[rank][file] != nullptr) && (chessBoard[rank][file]->getType() != king->getType()) && (chessBoard[rank][file]->getColour() == king->getColour())) {
+                if (attemptBlockCheck(chessBoard[rank][file])) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool ChessGame::attemptBlockCheck(ChessPiece* piece) {
+    // Try all the moves for that piece, test if blocking was succesful and undo
+
+    int rank = piece->getRankIndex();
+    int file = piece->getFileIndex();
+    int originCoords[2] = {rank, file};
+
+    for (uint32_t move = 0; move < piece->getUnitMoves().size(); move++) {
+        if (piece->getType() == rook || piece->getType() == bishop || piece->getType() == queen) {
+            for (int multiplier = 1; multiplier <= 8; multiplier++) {
+                int newRank = rank + multiplier*piece->getUnitMoves()[move][0];
+                int newFile = file + multiplier*piece->getUnitMoves()[move][1];
+                int destinationCoords[2] = {newRank, newFile};
+                if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+                    if (chessBoard[newRank][newFile] == nullptr) {
+                        makeMove(originCoords, destinationCoords);
+                        if ((turn == black && !detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)) || (turn == white && !detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true))) {
+                            makeMove(destinationCoords, originCoords);
+                            return true;
+                        }
+                        makeMove(destinationCoords, originCoords);
+                    }
+                }
+            }
+        }
+        else { // pawn, knight, king
+            int newRank = rank + piece->getUnitMoves()[move][0];
+            int newFile = file + piece->getUnitMoves()[move][1];
+            int destinationCoords[2] = {newRank, newFile};
+
+            if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+                if (chessBoard[newRank][newFile] == nullptr) {
+                    makeMove(originCoords, destinationCoords);
+                    if ((turn == black && !detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)) || (turn == white && !detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true))) {
+                        makeMove(destinationCoords, originCoords);
+                        return true;
+                    } 
+                    makeMove(destinationCoords, originCoords);    
+                }      
+            }
+        }
+    }
+    return false;
+}
+
+ChessPiece* ChessGame::findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction) {
 
     switch (direction) {
         case leftRank:
-            for (int i=rank-1; i >= 0; i--) {
-                if (chessBoard[i][file] != nullptr) {
-                    return chessBoard[i][file];
+            if (file == 0) {
+                return nullptr;
+                break;
+            }
+            for (int newFile = file - 1; newFile >= 0; newFile--) {
+                if (chessBoard[rank][newFile] != nullptr) {
+                    return chessBoard[rank][newFile];
                 }
             }
             break;
 
         case rightRank:
-            for (int i=rank+1; i < 8; i++) {
-                if (chessBoard[i][file] != nullptr) {
-                    return chessBoard[i][file];
+            if (file == 7) {
+            return nullptr;
+            break;
+            }
+            for (int newFile = file + 1; newFile < 8; newFile++) {
+                if (chessBoard[rank][newFile] != nullptr) {
+                    return chessBoard[rank][newFile];
                 }
             }
             break;
 
         case upFile:
-            for (int i=file+1; i < 8; i++) {
-                if (chessBoard[rank][i] != nullptr) {
-                    return chessBoard[rank][i];
+            if (rank == 7) {
+                return nullptr;
+                break;
+            }
+            for (int newRank = rank + 1; newRank < 8; newRank++) {
+                if (chessBoard[newRank][file] != nullptr) {
+                    return chessBoard[newRank][file];
                 }
             }
             break;
 
         case downFile:
-            for (int i=file-1; i >= 0; i--) {
-                if (chessBoard[rank][i] != nullptr) {
-                    return chessBoard[rank][i];
+            if (rank == 0) {
+                return nullptr;
+                break;
+            }
+            for (int newRank = rank - 1; newRank >= 0; newRank--) {
+                if (chessBoard[newRank][file] != nullptr) {
+                    return chessBoard[newRank][file];
                 }
             }
             break;
 
         case plusplus:
+            if (rank == 7 || file == 7) {
+                return nullptr;
+                break;
+            }
             for (int i=1; i+max(rank, file) < 8; i++) {
                 if (chessBoard[rank+i][file+i] != nullptr) {
                     return chessBoard[rank+i][file+i];
@@ -486,6 +643,10 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
             break;
 
         case minusminus:
+            if (rank == 0 || file == 0) {
+                return nullptr;
+                break;
+            }
             for (int i=1; min(rank, file)-i >= 0; i++) {
                 if (chessBoard[rank-i][file-i] != nullptr) {
                     return chessBoard[rank-i][file-i];
@@ -494,6 +655,10 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
             break;
 
         case plusminus:
+            if (rank == 7 || file == 0) {
+                return nullptr;
+                break;
+            }
             for (int i=1; (rank + i < 8) && (file - i >= 0); i++) {
                 if (chessBoard[rank+i][file-i] != nullptr) {
                     return chessBoard[rank+i][file-i];
@@ -502,6 +667,10 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
             break;
 
         case minusplus:
+            if (rank == 0 || file == 7) {
+                return nullptr;
+                break;
+            }
             for (int i=1; (rank - i >= 0) && (file + i < 8); i++) {
                 if (chessBoard[rank-i][file+i] != nullptr) {
                     return chessBoard[rank-i][file+i];
@@ -516,19 +685,17 @@ ChessPiece* ChessGame::findNearestNeighbour(ChessPiece* square, Directions direc
     return nullptr;
 }
 
-bool ChessGame::detectKnightInRange(ChessPiece* square) {
-    int rank = square->getRankIndex();
-    int file = square->getFileIndex();
+bool ChessGame::detectKnightInRange(int rank, int file, PieceColour colour) {
 
     int knightMoves[8][2] = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
 
-    for (int move=0; move < 8; move++) {
+    for (int move = 0; move < 8; move++) {
         int newRank = rank + knightMoves[move][0];
         int newFile = file + knightMoves[move][1];
 
-        if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
+        if ((newRank >= 0) && (newRank < 8) && (newFile >= 0) && (newFile < 8)) { // Boundary checks
             ChessPiece* possibleKnight = chessBoard[newRank][newFile];
-            if (possibleKnight && (possibleKnight->getType() == knight) && (possibleKnight->getColour() != square->getColour())) {
+            if ((possibleKnight != nullptr) && (possibleKnight->getType() == knight) && (possibleKnight->getColour() != colour)) {
                 return true;
             }
         }
@@ -536,10 +703,10 @@ bool ChessGame::detectKnightInRange(ChessPiece* square) {
     return false;
 }
 
-bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction) {
+bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, ChessPiece* nearestNeighbour, const Directions& direction) {
 
     if (nearestNeighbour != nullptr) {
-        if (square->getColour() == nearestNeighbour->getColour()) { // Return false if piece is friendly
+        if (colour == nearestNeighbour->getColour()) { // Check if piece is friendly
             return false;
         }
 
@@ -549,18 +716,14 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
             return true;
         }
 
-        if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - square->getRankIndex()), abs(nearestNeighbour->getFileIndex() - square->getFileIndex())) == 1)) {
+        if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - rank), abs(nearestNeighbour->getFileIndex() - file)) == 1)) {
             return true;
         }
 
         if ((pieceName == pawn)) {
-            if ((square->getColour() == white) && (nearestNeighbour->getRankIndex() == square->getRankIndex()+1)) {
-                if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
-                    return true;
-                }
-            }
-            if ((square->getColour() == black) && (nearestNeighbour->getRankIndex() == square->getRankIndex()-1)) {
-                if (abs(nearestNeighbour->getFileIndex() - square->getFileIndex()) == 1) {
+            if (((colour == white) && (nearestNeighbour->getRankIndex() == rank + 1)) ||
+                ((colour == black) && (nearestNeighbour->getRankIndex() == rank - 1))) {
+                if (abs(nearestNeighbour->getFileIndex() - file) == 1) {
                     return true;
                 }
             }
@@ -592,23 +755,56 @@ bool ChessGame::doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighb
     return false;
 }
 
-void ChessGame::printBoard() {
+// void ChessGame::printBoard() {
 
-    for (int rank=7; rank>=0; rank--) {
-        cout << rank + 1 << "   ";
-        for (int file=0; file<8; file++) {
-            if (chessBoard[rank][file] == nullptr) {
-                cout << "    |    |    ";
-            }
-            else {
-                cout << " |" << chessBoard[rank][file] << "| ";
-            }
-        }
-        cout << "\n" << "----------------------------------------------------------------------------------------------------------------------" << "\n";
-    }
-    cout <<             "      A              B              C              D              E              F              G              H      " << "\n";
-}
+//     for (int rank=7; rank>=0; rank--) {
+//         cout << rank + 1 << "   ";
+//         for (int file=0; file<8; file++) {
+//             if (chessBoard[rank][file] == nullptr) {
+//                 cout << "    |    |    ";
+//             }
+//             else {
+//                 cout << " |" << chessBoard[rank][file] << "| ";
+//             }
+//         }
+//         cout << "\n" << "----------------------------------------------------------------------------------------------------------------------" << "\n";
+//     }
+//     cout <<             "      A              B              C              D              E              F              G              H      " << "\n";
+// }
+
+// void ChessGame::printBoard() {
+//     // Unicode symbols for chess pieces
+//     const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
+//         {{king, white}, "♔"}, {{queen, white}, "♕"}, {{rook, white}, "♖"},
+//         {{bishop, white}, "♗"}, {{knight, white}, "♘"}, {{pawn, white}, "♙"},
+//         {{king, black}, "♚"}, {{queen, black}, "♛"}, {{rook, black}, "♜"},
+//         {{bishop, black}, "♝"}, {{knight, black}, "♞"}, {{pawn, black}, "♟"}
+//     };
+
+//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
+//     std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Top border
+
+//     for (int rank = 7; rank >= 0; rank--) {
+//         std::cout << (rank + 1) << " |"; // Row label
+//         for (int file = 0; file < 8; file++) {
+//             ChessPiece* piece = chessBoard[rank][file];
+//             if (piece == nullptr) {
+//                 std::cout << "  |"; // Empty square
+//             } else {
+//                 auto type = piece->getType();
+//                 auto colour = piece->getColour();
+//                 std::cout << pieceSymbols.at({type, colour}) << " |";
+//             }
+//         }
+//         std::cout << " " << (rank + 1) << "\n"; // Row label on the right
+//         std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Row separator
+//     }
+
+//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
+// }
+
 
 void ChessGame::endGame() {
+    cout << "\nEND OF GAME\n";
     exit(1);
 }

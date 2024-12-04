@@ -21,10 +21,10 @@ class ChessGame final {
 
         ChessPiece* chessBoard[ranks][files];
 
-        void loadState(const char * fenString);
-        void submitMove(const char * coord1, const char * coord2);
+        void loadState(const char* fenString);
+        void submitMove(const char* stringCoord1, const char* stringCoord2);
 
-        ChessPiece* getPiece(const int * coordinate);
+        ChessPiece* getPiece(const int* coord);
 
         PieceColour getTurn();
 
@@ -33,23 +33,28 @@ class ChessGame final {
     private:
         PieceColour turn;
 
-        bool captureOccured;
+        bool pieceAtDestinationSquare;
         PieceType capturedPieceName;
         
         bool whiteInCheck;
         bool blackInCheck;
+        bool whiteInCheckmate;
+        bool blackInCheckmate;
+
+        int emptySquare[2];
 
         ChessPiece* blackKing;
         ChessPiece* whiteKing;
         
         // Helper functions for loadState()
-        ChessPiece* createChessPiece(char abbrName, int rank, int file);
+        ChessPiece* createChessPiece(const char& abbrName, const int& rank, const int& file);
 
         // Helper functions for submitMove()
         void detectGameState();
-        int* coordToIndex(const char * coord);
-        bool checkMoveValid(const int* initCoord, const int* destCoord, const char * coord1, const char * coord2);
-        void makeMove(int* initCoord, int* destCoord);
+        int* coordToIndex(const char* coord);
+        bool checkMoveValid(const int* originCoord, const int* destinationCoord, const char* stringCoord1, const char* stringCoord2);
+        void makeMove(const int* originCoord, const int* destinationCoord);
+        void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
 
         // Helper functions for detectGameState()
@@ -58,13 +63,23 @@ class ChessGame final {
 
         // Helper functions for makeMove()
         void deletePiece(ChessPiece* pieceToDelete);
-        void modifyAttributes(ChessPiece* movedPiece);
-        bool detectCheck(ChessPiece* square);
+        bool detectCheck(int rank, int file, PieceColour colour, bool lookingAtKing);
+        bool detectCheckmate(ChessPiece* king);
+        bool pieceCanBlock(ChessPiece* king);
+        bool attemptBlockCheck(ChessPiece* piece);
+
+        // Helper functions for checkMoveValid()
+        bool checkCorrectTurn(ChessPiece* pieceAtOrigin);
+        bool checkPieceExists(ChessPiece* pieceAtOrigin, const char* stringCoord1);
+        bool checkCoordinatesValid(const int* originCoord, const int* destinationCoord);
+        bool checkPieceMoves(const int* originCoord, const int* destinationCoord);
+        bool checkNoFriendlyCapture(ChessPiece* pieceAtDestination);
+        bool checkPathClear(const int* originCoord, const int* destinationCoord);
 
         // Helper functions for detectCheck()
-        ChessPiece* findNearestNeighbour(ChessPiece* square, Directions direction);
-        bool detectKnightInRange(ChessPiece* square);
-        bool doesPieceSeeSquare(ChessPiece* square, ChessPiece* nearestNeighbour, Directions direction);
+        ChessPiece* findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction);
+        bool detectKnightInRange(int rank, int file, PieceColour colour);
+        bool doesPieceSeeSquare(int rank, int file, PieceColour colour, ChessPiece* nearestNeighbour, const Directions& direction);
 
         void endGame(); // ADD FUNCTIONALITY
 };
