@@ -479,9 +479,9 @@ void ChessGame::doCapture(ChessPiece* pieceToCapture) {
 
 void ChessGame::switchTurn() {
     cout << "\n";
-    if (turn == black) {
-        cout << "\n";
-    }
+    // if (turn == black) {
+    //     cout << "\n";
+    // }
 
     turn = (turn == white) ? black : white;
 }
