@@ -231,7 +231,7 @@ void ChessGame::detectGameState() {
         endGame();
     }
     if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
-        cout << "\nBlack is in checkmate";
+        cout << "\nBlack is in checkmate\n";
         //endGame();
     }
 
