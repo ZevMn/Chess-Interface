@@ -227,21 +227,21 @@ void ChessGame::detectGameState() {
     
     // Detect Checkmate
     if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
-        cout << "\nWhite is in checkmate\n";
+        cout << "\nWhite is in checkmate";
         endGame();
     }
     if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
-        cout << "\nBlack is in checkmate\n";
+        cout << "\nBlack is in checkmate";
         endGame();
     }
 
     // Detect Stalemate
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
-        cout << "\nStalemate\n";
+        cout << "\nStalemate";
         endGame();
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
-        cout << "\nStalemate\n";
+        cout << "\nStalemate";
         endGame();
     }
 
@@ -479,10 +479,6 @@ void ChessGame::doCapture(ChessPiece* pieceToCapture) {
 
 void ChessGame::switchTurn() {
     cout << "\n";
-    // if (turn == black) {
-    //     cout << "\n";
-    // }
-
     turn = (turn == white) ? black : white;
 }
 
