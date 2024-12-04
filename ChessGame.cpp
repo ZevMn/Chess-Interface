@@ -39,7 +39,7 @@ void ChessGame::loadState(const char* fenString) {
             }
         }
     }
-    cout << "A new board is loaded!\n";
+    cout << "A new board state is loaded!\n";
 
     // DECODE FEN STRING
     // PART 1: BOARD ARRANGEMENT
