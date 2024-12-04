@@ -478,7 +478,6 @@ void ChessGame::doCapture(ChessPiece* pieceToCapture) {
 }
 
 void ChessGame::switchTurn() {
-    cout << "\n";
     if (turn == black) {
         cout << "\n";
     }
@@ -805,6 +804,5 @@ bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, Chess
 
 
 void ChessGame::endGame() {
-    cout << "\nEND OF GAME\n";
     exit(1);
 }
