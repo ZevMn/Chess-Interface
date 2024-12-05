@@ -148,6 +148,10 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 // ROOK
 Rook::Rook(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, rook, rank, file, chessGame) {
     unitMoves = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+
+    if ((chessGame.blackRookExists && c == black) || (chessGame.whiteRookExists && c == white)) {
+        secondRook = true;
+    }
 }
 
 bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {

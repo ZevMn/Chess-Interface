@@ -13,6 +13,8 @@ const int ranks = 8, files = 8;
 
 enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
 
+enum CastlingStatus {regularMove, kingsideCastle, queensideCastle};
+
 class ChessGame final {
 
     public:
@@ -30,6 +32,9 @@ class ChessGame final {
 
         void printBoard();
 
+        bool blackRookExists = false;
+        bool whiteRookExists = false;
+
     private:
         PieceColour turn;
 
@@ -40,6 +45,8 @@ class ChessGame final {
         bool blackInCheck;
         bool whiteInCheckmate;
         bool blackInCheckmate;
+
+        CastlingStatus castlingStatus = regularMove;
 
         int emptySquare[2];
 
@@ -56,6 +63,7 @@ class ChessGame final {
         void makeMove(const int* originCoord, const int* destinationCoord);
         void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
+        void castle();
 
         // Helper functions for detectGameState()
         bool anySafeSquares(ChessPiece* king);
@@ -75,6 +83,7 @@ class ChessGame final {
         bool checkPieceMoves(const int* originCoord, const int* destinationCoord);
         bool checkNoFriendlyCapture(ChessPiece* pieceAtDestination);
         bool checkPathClear(const int* originCoord, const int* destinationCoord);
+        bool checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord);
 
         // Helper functions for detectCheck()
         ChessPiece* findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction);

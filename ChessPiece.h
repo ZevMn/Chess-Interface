@@ -71,7 +71,7 @@ class Rook : public ChessPiece {
         Rook(PieceColour c, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
-        // left_rook
+        bool secondRook = false;
 };
 
 class Knight : public ChessPiece {

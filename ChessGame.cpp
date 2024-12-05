@@ -162,6 +162,10 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     switchTurn();
 }
 
+void castle() {
+    return;
+}
+
 ChessPiece* ChessGame::getPiece(const int* coord) {
     return chessBoard[coord[0]][coord[1]];
 }
@@ -179,9 +183,11 @@ ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, c
             break;
         case 'r':
             newPiece = new Rook(black, rank, file, *this);
+            blackRookExists = true;
             break;
         case 'R':
             newPiece = new Rook(white, rank, file, *this);
+            whiteRookExists = true;
             break;
         case 'n':
             newPiece = new Knight(black, rank, file, *this);
@@ -227,21 +233,21 @@ void ChessGame::detectGameState() {
     
     // Detect Checkmate
     if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
-        cout << "\nWhite is in checkmate";
+        cout << "\nWhite is in checkmate\n";
         endGame();
     }
     if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
         cout << "\nBlack is in checkmate\n";
-        //endGame();
+        endGame();
     }
 
     // Detect Stalemate
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
-        cout << "\nStalemate";
+        cout << "\nStalemate\n";
         endGame();
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
-        cout << "\nStalemate";
+        cout << "\nStalemate\n";
         endGame();
     }
 
@@ -354,7 +360,10 @@ bool ChessGame::checkMoveValid(const int* originCoord, const int* destinationCoo
     }
     if ((pieceAtOrigin->getType() != knight) && !checkPathClear(originCoord, destinationCoord)) {
         return false;
-    }    
+    }
+    if ((pieceAtOrigin->getType() == king) && (originCoord[0] - destinationCoord[0] == 0) && (abs(originCoord[1] - destinationCoord[1]) == 2)) {
+        return checkCastlingValid(castlingStatus, originCoord, destinationCoord);
+    }
 
     return true;
 }
@@ -460,6 +469,18 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
             }
         }
     }
+    return true;
+}
+
+bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord) {
+        
+        // check king and rook haven't moved yet
+        // check not currently in check
+        // check squares empty in between them
+        // check no square in between is in check
+
+        // Set enum to kingside or queenside
+        (originCoord[1] > destinationCoord[1]) ? castlingStatus = kingsideCastle : castlingStatus = queensideCastle;
     return true;
 }
 
