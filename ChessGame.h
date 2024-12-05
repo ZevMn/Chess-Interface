@@ -32,9 +32,6 @@ class ChessGame final {
 
         void printBoard();
 
-        bool blackRookExists = false;
-        bool whiteRookExists = false;
-
     private:
         PieceColour turn;
 
@@ -43,8 +40,6 @@ class ChessGame final {
         
         bool whiteInCheck;
         bool blackInCheck;
-        bool whiteInCheckmate;
-        bool blackInCheckmate;
 
         CastlingStatus castlingStatus = regularMove;
 
@@ -52,6 +47,11 @@ class ChessGame final {
 
         ChessPiece* blackKing;
         ChessPiece* whiteKing;
+
+        bool whiteCanCastleKingside;
+        bool whiteCanCastleQueenside;
+        bool blackCanCastleKingside;
+        bool blackCanCastleQueenside;
         
         // Helper functions for loadState()
         ChessPiece* createChessPiece(const char& abbrName, const int& rank, const int& file);

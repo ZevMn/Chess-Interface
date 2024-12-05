@@ -85,12 +85,34 @@ void ChessGame::loadState(const char* fenString) {
         turn = black;
     }
 
+    /* PART 3: CASTLING RIGHTS */
+    whiteCanCastleKingside = false;
+    whiteCanCastleQueenside = false;
+    blackCanCastleKingside = false;
+    blackCanCastleQueenside = false;
+
+    i += 2;
+    while (fenString[i] != ' ') {
+        if (fenString[i] == 'K') {
+            whiteCanCastleKingside = true;
+        }
+        if (fenString[i] == 'Q') {
+            whiteCanCastleQueenside = true;
+        }
+        if (fenString[i] == 'k') {
+            blackCanCastleKingside = true;
+        }
+        if (fenString[i] == 'q') {
+            blackCanCastleQueenside = true;
+        }
+        i++;
+    }
+
+    // Leave part 4+ for now
+    // ----------------------------
+    // ----------------------------
+
     //printBoard();
-
-    // Leave part 3+ for now
-    // ----------------------------
-    // ----------------------------
-
     detectGameState();
 }
 
@@ -183,11 +205,9 @@ ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, c
             break;
         case 'r':
             newPiece = new Rook(black, rank, file, *this);
-            blackRookExists = true;
             break;
         case 'R':
             newPiece = new Rook(white, rank, file, *this);
-            whiteRookExists = true;
             break;
         case 'n':
             newPiece = new Knight(black, rank, file, *this);
@@ -473,14 +493,46 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
 }
 
 bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord) {
-        
-        // check king and rook haven't moved yet
-        // check not currently in check
-        // check squares empty in between them
-        // check no square in between is in check
 
-        // Set enum to kingside or queenside
-        (originCoord[1] > destinationCoord[1]) ? castlingStatus = kingsideCastle : castlingStatus = queensideCastle;
+    // Set enum to kingside or queenside
+    castlingStatus = (originCoord[1] > destinationCoord[1]) ? kingsideCastle : queensideCastle;
+
+    // Toggle king and rook movement separately
+    if (turn == white) {
+        if (castlingStatus == kingsideCastle && !whiteCanCastleKingside || castlingStatus == queensideCastle && !whiteCanCastleQueenside) {
+            return false;
+        }
+    }
+    if (turn == black) {
+        if (castlingStatus == kingsideCastle && !blackCanCastleKingside || castlingStatus == queensideCastle && !blackCanCastleQueenside) {
+            return false;
+        }
+    }
+    
+    // Not currently in check
+    if (turn == white && whiteInCheck || turn == black && blackInCheck) {
+        return false;
+    }
+    
+    // check squares in between are empty and not in check
+    int jump;
+    castlingStatus == kingsideCastle ? jump = -1 : jump = 1;
+    int rank = originCoord[0];
+    int file = destinationCoord[1] + jump;
+
+    int count = 0;
+    while (chessBoard[rank][file] == nullptr) {
+        count++;
+        file += jump;
+        if (detectCheck(rank, file, turn, false)) { // Check if square in check
+            return false;
+        }
+    }
+
+    if (castlingStatus == kingsideCastle ? count !=3 : count != 4) {
+        return false;
+    }
+
     return true;
 }
 
