@@ -983,5 +983,5 @@ bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, Chess
 
 
 void ChessGame::endGame() {
-    exit(1);
+    exit(0);
 }
