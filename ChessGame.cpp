@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ChessGame.h"
 #include "ChessPiece.h"
+#include <cmath>
 #include <map>
 #include <stdint.h>
 
@@ -39,7 +40,6 @@ void ChessGame::loadState(const char* fenString) {
             }
         }
     }
-    cout << "A new board state is loaded!\n";
 
     // DECODE FEN STRING
     // PART 1: BOARD ARRANGEMENT
@@ -72,7 +72,7 @@ void ChessGame::loadState(const char* fenString) {
             chessBoard[rank][file] = createChessPiece(currentCharacter, rank, file);
             file++;
         }
-        i++; // At the end of the loop, i will hold the position of the blank space
+        i++; // At the end of the loop, i will hold the position of the first blank space
 
     }
 
@@ -84,6 +84,7 @@ void ChessGame::loadState(const char* fenString) {
     else {
         turn = black;
     }
+    i++; // i will hold the position of the second blank space
 
     /* PART 3: CASTLING RIGHTS */
     whiteCanCastleKingside = false;
@@ -91,7 +92,7 @@ void ChessGame::loadState(const char* fenString) {
     blackCanCastleKingside = false;
     blackCanCastleQueenside = false;
 
-    i += 2;
+    i ++;
     while (fenString[i] != ' ') {
         if (fenString[i] == 'K') {
             whiteCanCastleKingside = true;
@@ -105,13 +106,37 @@ void ChessGame::loadState(const char* fenString) {
         if (fenString[i] == 'q') {
             blackCanCastleQueenside = true;
         }
-        i++;
+        // if fenString[i] = '-', then nothing happens
+        i++; // At the end of the loop, i will hold the position of the third blank space
     }
 
-    // Leave part 4+ for now
-    // ----------------------------
-    // ----------------------------
+    /* PART 4: EN PASSANT SQUARES */
+    i++;
+    const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
 
+    int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
+    enPassantSquare[0] = temporaryEnPassantSquare[0];
+    enPassantSquare[1] = temporaryEnPassantSquare[1];
+
+    delete [] temporaryEnPassantSquare;
+    temporaryEnPassantSquare = nullptr;
+    i += 2; // i will hold the position of the fourth blank space
+
+    // /* PART 5: HALF-MOVE COUNTER */
+    // i++;
+    // for (int count = 0; fenString[i] != ' '; count++) {
+    //     halfMoveCounter += (fenString[i]-'0') * pow(10, count);
+    //     i++; // At the end of the loop, i will hold the position of the fifth blank space
+    // }
+
+    // /* PART 6: FULL-MOVE COUNTER */
+    // i++;
+    // for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
+    //     fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+    //     i++;
+    // }
+
+    cout << "A new board state is loaded!\n";
     //printBoard();
     detectGameState();
 }
@@ -142,7 +167,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         }
         // REGULAR MOVE
         else {
-            regularMoveLogic(originCoord, destinationCoord, currentKing);
+            if (!regularMoveLogic(originCoord, destinationCoord, currentKing)) {
+                return;
+            }
             toggleCastlingFlags(pieceAtOrigin, originCoord);
         }
 
@@ -153,8 +180,30 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
             doCapture(pieceToCapture);
         }
 
+        // SET EN PASSANT SQUARE FOR NEXT TURN
+        if (pieceAtOrigin->getType() == pawn && (abs(originCoord[0]-destinationCoord[0]) == 2)) {
+            int offset = (originCoord[0] == 1 ? -1 : 1);
+            enPassantSquare[0] = originCoord[0] + offset;
+            enPassantSquare[1] = originCoord[1];
+        }
+        else {
+            enPassantSquare[0] = -1; // en passant will be ignored if enPassantSquare is -1
+        }
+
         // REMEMBER PIECE HAS MOVED
         chessBoard[destinationCoord[0]][destinationCoord[1]]->hasMoved = true;
+
+        if (pieceAtOrigin->getType() == pawn || pieceAtDestinationSquare) {
+            halfMoveCounter = 0;
+        }
+
+        halfMoveCounter++;
+        if (turn == black) {
+            fullMoveCounter++;
+        }
+
+        detectGameState();
+        switchTurn();
     }
 
     else {
@@ -166,12 +215,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     delete [] destinationCoord;
     destinationCoord = nullptr;
 
-    detectGameState();
     //cout << "\n\n";
     //printBoard();
     //cout << "\n\n";
-
-    switchTurn();
 }
 
 void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
@@ -188,7 +234,7 @@ void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
     makeMove(rookOriginCoord, rookDestinationCoord); // Move the rook
 }
 
-void ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing) {
+bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing) {
 
     makeMove(originCoord, destinationCoord);
 
@@ -197,7 +243,7 @@ void ChessGame::regularMoveLogic(const int* originCoord, const int* destinationC
         if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
             makeMove(destinationCoord, originCoord); // UNDO MOVE
             cout << "ERROR: Cannot make move - you are in check.";
-            return;
+            return false;
         }
         else {
             turn == white ? whiteInCheck = false : blackInCheck = false;
@@ -208,9 +254,10 @@ void ChessGame::regularMoveLogic(const int* originCoord, const int* destinationC
         if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
             makeMove(destinationCoord, originCoord); // UNDO MOVE
             cout << "ERROR: Cannot make move - you cannot move into check";
-            return;
+            return false;
         }
     } 
+    return true;
 }
 
 void ChessGame::toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord) {
@@ -299,12 +346,12 @@ void ChessGame::detectGameState() {
 
     bool checkDetected = false;
 
-    // Detect Check
+    // DETECT CHECK
     if (turn == white ? detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true) : detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)){
         checkDetected = true;
     }
     
-    // Detect Checkmate
+    // DETECT CHECKMATE
     if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
         cout << "\nWhite is in checkmate\n";
         endGame();
@@ -314,18 +361,23 @@ void ChessGame::detectGameState() {
         endGame();
     }
 
-    // Detect Stalemate
+    // DETECT STALEMATE
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
-        cout << "\nStalemate\n";
+        cout << "\nEnd of game - stalemate\n";
         endGame();
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
-        cout << "\nStalemate\n";
+        cout << "\nEnd of game - stalemate\n";
         endGame();
     }
 
-    // Detect draw by 50 moves
-    // Detect Draw by repetition
+    // DETECT DRAW BY 50-MOVE RULE
+    if (halfMoveCounter == 100) {
+        cout << "\nEnd of game - draw by 50-move rule\n";
+        endGame();
+    }
+
+    // DETECT DRAW BY REPETITION
 
     if (checkDetected) { // If game continues then output check message
         PieceColour oppositeTurn = ((turn == white) ? black : white);
@@ -406,12 +458,11 @@ int* ChessGame::coordToIndex(const char* coord) {
     indexArray[1] = coord[0] - 'A'; // files are denoted by letters
     indexArray[0] = coord[1] - '1'; // ranks are deonated by numbers
 
-    if (indexArray[0] < 0 || indexArray[0] > 7 || indexArray[1] < 0 || indexArray[1] > 7) {
-        cout << "ERROR: Coordinate out of bounds.\n";
-        exit(1); // REVISIT THIS
-    }
-
     return indexArray;
+}
+
+int* ChessGame::getEnPassantSquare() {
+    return enPassantSquare;
 }
 
 bool ChessGame::checkMoveValid(const int* originCoord, const int* destinationCoord, const char* stringCoord1, const char* stringCoord2) {
@@ -461,7 +512,7 @@ bool ChessGame::checkPieceExists(ChessPiece* pieceAtOrigin, const char* stringCo
 bool ChessGame::checkCoordinatesValid(const int* originCoord, const int* destinationCoord) {
     for (int i=0; i<2; i++) {
         if (originCoord[i] < 0 || originCoord[i] > 7 || destinationCoord[i] < 0 || destinationCoord[i] > 7) {
-            cout << "ERROR: Cannot make move - invalid coordinatesm\n";
+            cout << "ERROR: Cannot make move - Coordinate out of bounds\n";
             return false;
         }
     }

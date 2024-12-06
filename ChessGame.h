@@ -29,11 +29,14 @@ class ChessGame final {
         ChessPiece* getPiece(const int* coord);
 
         PieceColour getTurn();
+        int* getEnPassantSquare();
 
         void printBoard();
 
     private:
         PieceColour turn;
+        int halfMoveCounter;
+        int fullMoveCounter;
 
         bool pieceAtDestinationSquare;
         PieceType capturedPieceName;
@@ -44,6 +47,7 @@ class ChessGame final {
         CastlingStatus castlingStatus = regularMove;
 
         int emptySquare[2];
+        int enPassantSquare[2];
 
         ChessPiece* blackKing;
         ChessPiece* whiteKing;
@@ -64,7 +68,7 @@ class ChessGame final {
         void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
         void castle(const int* originCoord, const int* destinationCoord);
-        void regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing);
+        bool regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing);
         void toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord);
 
         // Helper functions for detectGameState()

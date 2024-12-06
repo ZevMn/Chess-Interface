@@ -122,7 +122,7 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
     int advance = newRank - oldRank;
 
-    if (oldFile == newFile) {
+    if (oldFile == newFile) { // Regular pawn move
         if (colour == white) {
             if (advance == 1 || (!hasMoved && advance == 2)) {
                 return true;
@@ -133,11 +133,14 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
         }
     }
 
-    if (abs(oldFile - newFile) == 1) {
+    if (abs(oldFile - newFile) == 1) { // Capture or en passant
         if ((colour == white) && (advance == 1) && (chessGame.chessBoard[newRank][newFile] != nullptr)) {
             return true;
         }
         if ((colour == black) && (advance == -1) && (chessGame.chessBoard[newRank][newFile] != nullptr)) {
+            return true;
+        }
+        if (chessGame.getEnPassantSquare()[0] != -1 && newRank == chessGame.getEnPassantSquare()[0] && newFile == chessGame.getEnPassantSquare()[1]) {
             return true;
         }
     }
