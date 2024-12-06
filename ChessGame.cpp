@@ -121,9 +121,10 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     int* originCoord = coordToIndex(stringCoord1);
     int* destinationCoord = coordToIndex(stringCoord2);
 
-    ChessPiece* pieceToCapture = getPiece(destinationCoord);
     ChessPiece* currentKing = ((turn == white) ? whiteKing : blackKing);
+    ChessPiece* pieceAtOrigin = getPiece(originCoord);
 
+    ChessPiece* pieceToCapture = getPiece(destinationCoord);
     if (pieceToCapture != nullptr) {
         pieceAtDestinationSquare = true;
     }
@@ -134,26 +135,15 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     // FIRST DETERMINE IF MOVE IS VALID DISREGARDING STATE OF CHECK
     if (checkMoveValid(originCoord, destinationCoord, stringCoord1, stringCoord2)) {
 
-        makeMove(originCoord, destinationCoord);
-
-        // IF IN CHECK, THE MOVE MUST TAKE YOU OUT OF CHECK
-        if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
-            if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
-                makeMove(destinationCoord, originCoord); // UNDO MOVE
-                cout << "ERROR: Cannot make move - you are in check.";
-                return;
-            }
-            else {
-                turn == white ? whiteInCheck = false : blackInCheck = false;
-            }
+        // CASTLING
+        if (castlingStatus != regularMove) {
+            castle(originCoord, destinationCoord);    
+            castlingStatus = regularMove;
         }
-        // IF NOT IN CHECK, YOU MUST NOT BE MOVING INTO CHECK
+        // REGULAR MOVE
         else {
-            if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
-                makeMove(destinationCoord, originCoord); // UNDO MOVE
-                cout << "ERROR: Cannot make move - you cannot move into check";
-                return;
-            }
+            regularMoveLogic(originCoord, destinationCoord, currentKing);
+            toggleCastlingFlags(pieceAtOrigin, originCoord);
         }
 
         cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << stringCoord1 << " to " << stringCoord2;
@@ -184,8 +174,71 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     switchTurn();
 }
 
-void castle() {
-    return;
+void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
+
+    makeMove(originCoord, destinationCoord); // Move the king
+
+    int rookRank = (turn == white) ? 0 : 7;
+    int rookFile = (castlingStatus == kingsideCastle) ? 0 : 7;
+    int rookOriginCoord[2] = {rookRank, rookFile};
+            
+    int rookNewFile = (castlingStatus == kingsideCastle) ? 2 : 4;
+    int rookDestinationCoord[2] = {rookRank, rookNewFile};
+
+    makeMove(rookOriginCoord, rookDestinationCoord); // Move the rook
+}
+
+void ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing) {
+
+    makeMove(originCoord, destinationCoord);
+
+    // IF IN CHECK, THE MOVE MUST TAKE YOU OUT OF CHECK
+    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
+        if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
+            makeMove(destinationCoord, originCoord); // UNDO MOVE
+            cout << "ERROR: Cannot make move - you are in check.";
+            return;
+        }
+        else {
+            turn == white ? whiteInCheck = false : blackInCheck = false;
+        }
+    }
+    // IF NOT IN CHECK, YOU MUST NOT BE MOVING INTO CHECK
+    else {
+        if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
+            makeMove(destinationCoord, originCoord); // UNDO MOVE
+            cout << "ERROR: Cannot make move - you cannot move into check";
+            return;
+        }
+    } 
+}
+
+void ChessGame::toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord) {
+
+    if (pieceAtOrigin->getType() == king) {
+        if (turn == white) {
+            whiteCanCastleKingside = false;
+            whiteCanCastleQueenside = false;
+        }
+        else {
+            blackCanCastleKingside = false;
+            blackCanCastleQueenside = false;
+        }
+    }
+    else if (pieceAtOrigin->getType() == rook) {
+        if (turn == white && originCoord[1] == 0) {
+            whiteCanCastleKingside = false;                    
+        }
+        else if (turn == white && originCoord[1] == 7) {
+            whiteCanCastleQueenside = false;
+        }
+        else if (turn == black && originCoord[1] == 0) {
+            blackCanCastleKingside = false;
+        }
+        else if (turn == black && originCoord[1] == 7) {
+            blackCanCastleQueenside = false;
+        }
+    }
 }
 
 ChessPiece* ChessGame::getPiece(const int* coord) {
@@ -375,14 +428,15 @@ bool ChessGame::checkMoveValid(const int* originCoord, const int* destinationCoo
     if (pieceAtDestination != nullptr && !checkNoFriendlyCapture(pieceAtDestination)) {
         return false;
     }
+    if ((pieceAtOrigin->getType() == king) && (originCoord[0] - destinationCoord[0] == 0) && (abs(originCoord[1] - destinationCoord[1]) == 2)) {
+        // Check for castling must be done before check for regular movement pattern
+        return checkCastlingValid(castlingStatus, originCoord, destinationCoord);
+    }
     if(!pieceAtOrigin->checkMovementPattern(originCoord, destinationCoord, stringCoord2)) {
         return false;
     }
     if ((pieceAtOrigin->getType() != knight) && !checkPathClear(originCoord, destinationCoord)) {
         return false;
-    }
-    if ((pieceAtOrigin->getType() == king) && (originCoord[0] - destinationCoord[0] == 0) && (abs(originCoord[1] - destinationCoord[1]) == 2)) {
-        return checkCastlingValid(castlingStatus, originCoord, destinationCoord);
     }
 
     return true;
@@ -494,29 +548,32 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
 
 bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord) {
 
-    // Set enum to kingside or queenside
+    // Set enum to kingside or queenside castle
     castlingStatus = (originCoord[1] > destinationCoord[1]) ? kingsideCastle : queensideCastle;
 
-    // Toggle king and rook movement separately
+    // Player can castle by default. This is toggled elsewhere if respective rook or king have moved
     if (turn == white) {
-        if (castlingStatus == kingsideCastle && !whiteCanCastleKingside || castlingStatus == queensideCastle && !whiteCanCastleQueenside) {
+        if ((castlingStatus == kingsideCastle && !whiteCanCastleKingside) || (castlingStatus == queensideCastle && !whiteCanCastleQueenside)) {
+            cout << "ERROR: You cannot castle if you have moved your king or rook\n"; 
             return false;
         }
     }
     if (turn == black) {
-        if (castlingStatus == kingsideCastle && !blackCanCastleKingside || castlingStatus == queensideCastle && !blackCanCastleQueenside) {
+        if ((castlingStatus == kingsideCastle && !blackCanCastleKingside) || (castlingStatus == queensideCastle && !blackCanCastleQueenside)) {
+            cout << "ERROR: You cannot castle if you have moved your king or rook\n";
             return false;
         }
     }
     
-    // Not currently in check
-    if (turn == white && whiteInCheck || turn == black && blackInCheck) {
+    // Cannot castle out of check
+    if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
+        cout << "ERROR: Cannot castle - you are in check";
         return false;
     }
     
-    // check squares in between are empty and not in check
+    // Cannot castle through check or other pieces
     int jump;
-    castlingStatus == kingsideCastle ? jump = -1 : jump = 1;
+    jump = (castlingStatus == kingsideCastle) ? -1 : 1;
     int rank = originCoord[0];
     int file = destinationCoord[1] + jump;
 
@@ -525,11 +582,12 @@ bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* or
         count++;
         file += jump;
         if (detectCheck(rank, file, turn, false)) { // Check if square in check
+            cout << "ERROR: Cannot castle through check\n";
             return false;
         }
     }
-
-    if (castlingStatus == kingsideCastle ? count !=3 : count != 4) {
+    if (count != (castlingStatus == kingsideCastle ? 2 : 3)) {
+        cout << "ERROR: Cannot castle - there are pieces in the way\n";
         return false;
     }
 

@@ -63,11 +63,13 @@ class ChessGame final {
         void makeMove(const int* originCoord, const int* destinationCoord);
         void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
-        void castle();
+        void castle(const int* originCoord, const int* destinationCoord);
+        void regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing);
+        void toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord);
 
         // Helper functions for detectGameState()
         bool anySafeSquares(ChessPiece* king);
-        bool anyPiecesCanMove(); // ADD FUNCTIONALITY
+        bool anyPiecesCanMove();
 
         // Helper functions for makeMove()
         void deletePiece(ChessPiece* pieceToDelete);
@@ -90,7 +92,7 @@ class ChessGame final {
         bool detectKnightInRange(int rank, int file, PieceColour colour);
         bool doesPieceSeeSquare(int rank, int file, PieceColour colour, ChessPiece* nearestNeighbour, const Directions& direction);
 
-        void endGame(); // ADD FUNCTIONALITY
+        void endGame();
 };
 
 #endif
