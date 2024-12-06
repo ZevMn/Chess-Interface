@@ -541,11 +541,11 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
 
         for (int i=1; i < abs(destinationCoord[0]-originCoord[0]);i++) {
             if ((destinationCoord[0] > originCoord[0]) && (chessBoard[originCoord[0] + i][originCoord[1]] != nullptr)) {
-                cout << "ERROR: 1\n";
+                cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }
             else if ((destinationCoord[0] < originCoord[0]) && (chessBoard[originCoord[0] - i][originCoord[1]] != nullptr)) {
-                cout << "ERROR: 2\n";
+                cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
             }
         }
@@ -555,11 +555,11 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
             
         for (int i=1; i < abs(destinationCoord[1]-originCoord[1]);i++) {
             if ((destinationCoord[1] > originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] + i] != nullptr)) {
-                cout << "ERROR: 3\n";
+                cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }
             else if ((destinationCoord[1] < originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] - i] != nullptr)) {
-                cout << "ERROR: 4\n";
+                cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }
         }
@@ -570,25 +570,25 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
         for (int i=1; i < abs(destinationCoord[0]-originCoord[0]); i++) {
             if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (+,+)
                 if (chessBoard[originCoord[0]+i][originCoord[1]+i] != nullptr) {
-                    cout << "ERROR: 5\n";
+                    cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
                 }
             }
             if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (-,-)
                 if (chessBoard[originCoord[0]-i][originCoord[1]-i] != nullptr) {
-                    cout << "ERROR: 6\n";
+                    cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
                 }
             }
             if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (+,-)
                 if (chessBoard[originCoord[0]+i][originCoord[1]-i] != nullptr) {
-                    cout << "ERROR: 7\n";
+                    cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
                 }
             }
             if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (-,+)
                 if (chessBoard[originCoord[0]-i][originCoord[1]+i] != nullptr) {
-                    cout << "ERROR: 8\n";
+                    cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
                 }
             }
