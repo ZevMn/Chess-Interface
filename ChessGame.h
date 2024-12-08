@@ -29,7 +29,9 @@ class ChessGame final {
         ChessPiece* getPiece(const int* coord);
 
         PieceColour getTurn();
+        
         int* getEnPassantSquare();
+        bool enPassantCapture = false;
 
         void printBoard();
 

@@ -21,8 +21,11 @@ ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), b
 ChessGame::~ChessGame() {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
-            delete chessBoard[i][j];
-            chessBoard[i][j] = nullptr;
+            if (chessBoard[i][j] != nullptr) {
+                cout << chessBoard[i][j]->getType() << " (" << i+1 << ", " << j+1 << ")" << endl;
+                delete chessBoard[i][j];
+                chessBoard[i][j] = nullptr;
+            }
         }
     }
 }
@@ -112,32 +115,39 @@ void ChessGame::loadState(const char* fenString) {
 
     /* PART 4: EN PASSANT SQUARES */
     i++;
-    const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
+    if (fenString[i] == '-') {
+        i++;
+    }
+    else {
+        const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
 
-    int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
-    enPassantSquare[0] = temporaryEnPassantSquare[0];
-    enPassantSquare[1] = temporaryEnPassantSquare[1];
+        int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
 
-    delete [] temporaryEnPassantSquare;
-    temporaryEnPassantSquare = nullptr;
-    i += 2; // i will hold the position of the fourth blank space
+        enPassantSquare[0] = temporaryEnPassantSquare[0];
+        enPassantSquare[1] = temporaryEnPassantSquare[1];
 
-    // /* PART 5: HALF-MOVE COUNTER */
-    // i++;
-    // for (int count = 0; fenString[i] != ' '; count++) {
-    //     halfMoveCounter += (fenString[i]-'0') * pow(10, count);
-    //     i++; // At the end of the loop, i will hold the position of the fifth blank space
-    // }
+        delete [] temporaryEnPassantSquare;
+        temporaryEnPassantSquare = nullptr;
 
-    // /* PART 6: FULL-MOVE COUNTER */
-    // i++;
-    // for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
-    //     fullMoveCounter += (fenString[i]-'0') * pow(10, count);
-    //     i++;
-    // }
+        i += 2; // i will hold the position of the fourth blank space
+    }
+
+    /* PART 5: HALF-MOVE COUNTER */
+    i++;
+    for (int count = 0; fenString[i] != ' '; count++) {
+        halfMoveCounter += (fenString[i]-'0') * pow(10, count);
+        i++; // At the end of the loop, i will hold the position of the fifth blank space
+    }
+
+    /* PART 6: FULL-MOVE COUNTER */
+    i++;
+    for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
+        fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+        i++;
+    }
 
     cout << "A new board state is loaded!\n";
-    //printBoard();
+    printBoard();
     detectGameState();
 }
 
@@ -148,9 +158,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
 
     ChessPiece* currentKing = ((turn == white) ? whiteKing : blackKing);
     ChessPiece* pieceAtOrigin = getPiece(originCoord);
+    ChessPiece* pieceAtDestination = getPiece(destinationCoord);
 
-    ChessPiece* pieceToCapture = getPiece(destinationCoord);
-    if (pieceToCapture != nullptr) {
+    if (pieceAtDestination != nullptr) {
         pieceAtDestinationSquare = true;
     }
     else {
@@ -166,18 +176,25 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
             castlingStatus = regularMove;
         }
         // REGULAR MOVE
-        else {
-            if (!regularMoveLogic(originCoord, destinationCoord, currentKing)) {
-                return;
-            }
-            toggleCastlingFlags(pieceAtOrigin, originCoord);
+        else if (!regularMoveLogic(originCoord, destinationCoord, currentKing)) {
+            cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid";
+            return;
         }
+
+        toggleCastlingFlags(pieceAtOrigin, originCoord);
+
 
         cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << stringCoord1 << " to " << stringCoord2;
 
         // CAPTURE LOGIC
         if (pieceAtDestinationSquare) {
-            doCapture(pieceToCapture);
+            doCapture(pieceAtDestination);
+        }
+        else if (enPassantCapture) { // There will never be a piece at destination square in en passant
+            int pawnCapturedRank = (turn == white ? 4 : 3);
+            doCapture(chessBoard[pawnCapturedRank][destinationCoord[1]]);
+            // This does not work (why?): deletePiece(chessBoard[pawnCapturedRank][destinationCoord[1]]);
+            cout << chessBoard[pawnCapturedRank][destinationCoord[1]];
         }
 
         // SET EN PASSANT SQUARE FOR NEXT TURN
@@ -215,9 +232,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     delete [] destinationCoord;
     destinationCoord = nullptr;
 
-    //cout << "\n\n";
-    //printBoard();
-    //cout << "\n\n";
+    cout << "\n\n";
+    printBoard();
+    cout << "\n\n";
 }
 
 void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
@@ -225,10 +242,10 @@ void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
     makeMove(originCoord, destinationCoord); // Move the king
 
     int rookRank = (turn == white) ? 0 : 7;
-    int rookFile = (castlingStatus == kingsideCastle) ? 0 : 7;
+    int rookFile = (castlingStatus == kingsideCastle) ? 7 : 0;
     int rookOriginCoord[2] = {rookRank, rookFile};
             
-    int rookNewFile = (castlingStatus == kingsideCastle) ? 2 : 4;
+    int rookNewFile = (castlingStatus == kingsideCastle) ? 5 : 3;
     int rookDestinationCoord[2] = {rookRank, rookNewFile};
 
     makeMove(rookOriginCoord, rookDestinationCoord); // Move the rook
@@ -345,6 +362,7 @@ ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, c
 void ChessGame::detectGameState() {
 
     bool checkDetected = false;
+    bool endGame = false;
 
     // DETECT CHECK
     if (turn == white ? detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true) : detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)){
@@ -354,32 +372,32 @@ void ChessGame::detectGameState() {
     // DETECT CHECKMATE
     if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
         cout << "\nWhite is in checkmate\n";
-        endGame();
+        endGame = true;
     }
     if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
         cout << "\nBlack is in checkmate\n";
-        endGame();
+        endGame = true;
     }
 
     // DETECT STALEMATE
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
         cout << "\nEnd of game - stalemate\n";
-        endGame();
+        endGame = true;
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
         cout << "\nEnd of game - stalemate\n";
-        endGame();
+        endGame = true;
     }
 
     // DETECT DRAW BY 50-MOVE RULE
-    if (halfMoveCounter == 100) {
+    if (!endGame && halfMoveCounter == 100) {
         cout << "\nEnd of game - draw by 50-move rule\n";
-        endGame();
+        endGame = true;
     }
 
     // DETECT DRAW BY REPETITION
 
-    if (checkDetected) { // If game continues then output check message
+    if (!endGame && checkDetected) { // If game continues then output check message
         PieceColour oppositeTurn = ((turn == white) ? black : white);
         cout << "\n" << oppositeTurn << " is in check";
     }
@@ -600,7 +618,7 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
 bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord) {
 
     // Set enum to kingside or queenside castle
-    castlingStatus = (originCoord[1] > destinationCoord[1]) ? kingsideCastle : queensideCastle;
+    castlingStatus = (originCoord[1] < destinationCoord[1]) ? kingsideCastle : queensideCastle;
 
     // Player can castle by default. This is toggled elsewhere if respective rook or king have moved
     if (turn == white) {
@@ -624,19 +642,19 @@ bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* or
     
     // Cannot castle through check or other pieces
     int jump;
-    jump = (castlingStatus == kingsideCastle) ? -1 : 1;
+    jump = (castlingStatus == kingsideCastle) ? 1 : -1;
     int rank = originCoord[0];
-    int file = destinationCoord[1] + jump;
+    int file = originCoord[1] + jump;
 
     int count = 0;
     while (chessBoard[rank][file] == nullptr) {
         count++;
-        file += jump;
         if (detectCheck(rank, file, turn, false)) { // Check if square in check
             cout << "ERROR: Cannot castle through check\n";
             return false;
         }
-    }
+        file += jump;
+    }    
     if (count != (castlingStatus == kingsideCastle ? 2 : 3)) {
         cout << "ERROR: Cannot castle - there are pieces in the way\n";
         return false;
@@ -654,9 +672,15 @@ void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
 void ChessGame::doCapture(ChessPiece* pieceToCapture) {
     cout << " taking " << pieceToCapture->getColour() << "'s " << pieceToCapture->getType();
 
-    pieceAtDestinationSquare = false;
+    if (enPassantCapture) {
+        cout << " via en passant";
+        enPassantCapture = false;
+    }
+    else {
+        pieceAtDestinationSquare = false;
+    }
+
     deletePiece(pieceToCapture);
-    pieceToCapture = nullptr;
 }
 
 void ChessGame::switchTurn() {
@@ -950,38 +974,39 @@ bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, Chess
 //     cout <<             "      A              B              C              D              E              F              G              H      " << "\n";
 // }
 
-// void ChessGame::printBoard() {
-//     // Unicode symbols for chess pieces
-//     const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
-//         {{king, white}, "♔"}, {{queen, white}, "♕"}, {{rook, white}, "♖"},
-//         {{bishop, white}, "♗"}, {{knight, white}, "♘"}, {{pawn, white}, "♙"},
-//         {{king, black}, "♚"}, {{queen, black}, "♛"}, {{rook, black}, "♜"},
-//         {{bishop, black}, "♝"}, {{knight, black}, "♞"}, {{pawn, black}, "♟"}
-//     };
+void ChessGame::printBoard() {
+    // Unicode symbols for chess pieces
+    const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
+        {{king, white}, "♔"}, {{queen, white}, "♕"}, {{rook, white}, "♖"},
+        {{bishop, white}, "♗"}, {{knight, white}, "♘"}, {{pawn, white}, "♙"},
+        {{king, black}, "♚"}, {{queen, black}, "♛"}, {{rook, black}, "♜"},
+        {{bishop, black}, "♝"}, {{knight, black}, "♞"}, {{pawn, black}, "♟"}
+    };
 
-//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
-//     std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Top border
+    std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
+    std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Top border
 
-//     for (int rank = 7; rank >= 0; rank--) {
-//         std::cout << (rank + 1) << " |"; // Row label
-//         for (int file = 0; file < 8; file++) {
-//             ChessPiece* piece = chessBoard[rank][file];
-//             if (piece == nullptr) {
-//                 std::cout << "  |"; // Empty square
-//             } else {
-//                 auto type = piece->getType();
-//                 auto colour = piece->getColour();
-//                 std::cout << pieceSymbols.at({type, colour}) << " |";
-//             }
-//         }
-//         std::cout << " " << (rank + 1) << "\n"; // Row label on the right
-//         std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Row separator
-//     }
+    for (int rank = 7; rank >= 0; rank--) {
+        std::cout << (rank + 1) << " |"; // Row label
+        for (int file = 0; file < 8; file++) {
+            ChessPiece* piece = chessBoard[rank][file];
+            if (piece == nullptr) {
+                std::cout << "  |"; // Empty square
+            } else {
+                auto type = piece->getType();
+                auto colour = piece->getColour();
+                std::cout << pieceSymbols.at({type, colour}) << " |";
+            }
+        }
+        std::cout << " " << (rank + 1) << "\n"; // Row label on the right
+        std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Row separator
+    }
 
-//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
-// }
+    std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
+}
 
 
 void ChessGame::endGame() {
-    exit(0);
+    return;
+    //exit(0);
 }

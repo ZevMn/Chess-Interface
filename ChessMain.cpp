@@ -76,5 +76,35 @@ int main() {
 	cg.submitMove("D3", "G6");
 	cout << '\n';
 
+	// =========================================
+	// EXTRA TESTS..............................
+	// =========================================
+
+    cout << "========================\n";
+    cout << "Testing Castling\n";
+    cout << "========================\n\n";
+
+    cg.loadState("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
+    cout << '\n';
+
+    cg.submitMove("E1", "G1"); // White kingside castling
+    cg.submitMove("E8", "C8"); // Black queenside castling
+    cout << '\n';
+
+
+    cout << "========================\n";
+    cout << "Testing En Passant\n";
+    cout << "========================\n\n";
+
+    cg.loadState("4k3/8/8/3Pp3/8/8/8/4K3 w - e6 0 1");
+    cout << '\n';
+
+    cg.submitMove("D5", "E6"); // En passant capture
+    cout << '\n';
+
+
+
+
+
 	return 0;
 }

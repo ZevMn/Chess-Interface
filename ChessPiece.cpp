@@ -141,6 +141,7 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
             return true;
         }
         if (chessGame.getEnPassantSquare()[0] != -1 && newRank == chessGame.getEnPassantSquare()[0] && newFile == chessGame.getEnPassantSquare()[1]) {
+            chessGame.enPassantCapture = true;
             return true;
         }
     }
