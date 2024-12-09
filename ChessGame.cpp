@@ -226,9 +226,7 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         }
 
         detectGameState();
-        if (!endGame) {
-            switchTurn();
-        }
+        switchTurn();
     }
 
     else {
