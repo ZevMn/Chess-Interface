@@ -21,11 +21,8 @@ ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), b
 ChessGame::~ChessGame() {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
-            if (chessBoard[i][j] != nullptr) {
-                cout << chessBoard[i][j]->getType() << " (" << i+1 << ", " << j+1 << ")" << endl;
-                delete chessBoard[i][j];
-                chessBoard[i][j] = nullptr;
-            }
+            delete chessBoard[i][j];
+            chessBoard[i][j] = nullptr;
         }
     }
 }
@@ -148,6 +145,7 @@ void ChessGame::loadState(const char* fenString) {
 
     cout << "A new board state is loaded!\n";
     printBoard();
+
     detectGameState();
 }
 
@@ -156,7 +154,6 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     int* originCoord = coordToIndex(stringCoord1);
     int* destinationCoord = coordToIndex(stringCoord2);
 
-    ChessPiece* currentKing = ((turn == white) ? whiteKing : blackKing);
     ChessPiece* pieceAtOrigin = getPiece(originCoord);
     ChessPiece* pieceAtDestination = getPiece(destinationCoord);
 
@@ -176,7 +173,7 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
             castlingStatus = regularMove;
         }
         // REGULAR MOVE
-        else if (!regularMoveLogic(originCoord, destinationCoord, currentKing)) {
+        else if (!regularMoveLogic(originCoord, destinationCoord)) {
             cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid";
             return;
         }
@@ -207,14 +204,11 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
             enPassantSquare[0] = -1; // en passant will be ignored if enPassantSquare is -1
         }
 
-        // REMEMBER PIECE HAS MOVED
-        chessBoard[destinationCoord[0]][destinationCoord[1]]->hasMoved = true;
-
         if (pieceAtOrigin->getType() == pawn || pieceAtDestinationSquare) {
             halfMoveCounter = 0;
         }
-
         halfMoveCounter++;
+
         if (turn == black) {
             fullMoveCounter++;
         }
@@ -251,9 +245,10 @@ void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
     makeMove(rookOriginCoord, rookDestinationCoord); // Move the rook
 }
 
-bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing) {
+bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord) {
 
     makeMove(originCoord, destinationCoord);
+    ChessPiece* currentKing = ((turn == white) ? whiteKing : blackKing);
 
     // IF IN CHECK, THE MOVE MUST TAKE YOU OUT OF CHECK
     if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
@@ -364,8 +359,25 @@ void ChessGame::detectGameState() {
     bool checkDetected = false;
     bool endGame = false;
 
+    /*-------------TEST--------------*/
+    if (detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), black, true)) {
+        cout << "\n\nBLACK IS IN CHECK\n\n";
+    }
+    if (detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), white, true)) {
+        cout << "\n\nWHITE IS IN CHECK\n\n";
+    }
+    if (chessBoard[7][7] != nullptr) {
+        cout << chessBoard[7][7] << "<- (7, 7)\n";
+        cout << blackKing->getRankIndex() << endl;
+    }
+    if (chessBoard[6][7] != nullptr) {
+        cout << chessBoard[6][7] << "<- (6, 7)\n";
+        cout << blackKing->getRankIndex() << endl;
+    }
+    /*-------------TEST--------------*/
+
     // DETECT CHECK
-    if (turn == white ? detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true) : detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)){
+    if (detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), black, true) || detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), white, true)) {
         checkDetected = true;
     }
     
@@ -667,6 +679,13 @@ void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
 
     chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
     chessBoard[originCoord[0]][originCoord[1]] = nullptr;
+
+    if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
+        (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
+    }
+    cout << endl << "(" << destinationCoord[0] << ", " << destinationCoord[1] << ")" << endl;
+    cout << blackKing->getRankIndex() << endl;
+    cout << whiteKing->getRankIndex() << endl;
 }
 
 void ChessGame::doCapture(ChessPiece* pieceToCapture) {

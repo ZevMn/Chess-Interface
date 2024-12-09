@@ -10,7 +10,7 @@ using namespace std;
 
 /* CHESS PIECE */
 ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame& chessGame) 
-: hasMoved(false), colour(c), type(t), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
+: colour(c), type(t), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
 
 ChessPiece::~ChessPiece() {}
 
@@ -123,12 +123,10 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
     int advance = newRank - oldRank;
 
     if (oldFile == newFile) { // Regular pawn move
-        if (colour == white) {
-            if (advance == 1 || (!hasMoved && advance == 2)) {
-                return true;
-            }
+        if (colour == white && (advance == 1 || (oldRank == 1 && advance == 2))) {
+            return true;
         }
-        else if (advance == -1 || (!hasMoved && advance == -2)) {
+        else if (advance == -1 || (oldRank == 6 && advance == -2)) {
             return true;
         }
     }

@@ -23,8 +23,6 @@ class ChessPiece {
         ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame& chessGame);
         virtual ~ChessPiece();
 
-        bool hasMoved;
-
         char getAbbrName() const;
 
         PieceType getType() const;

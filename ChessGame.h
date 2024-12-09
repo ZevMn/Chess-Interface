@@ -70,7 +70,7 @@ class ChessGame final {
         void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
         void castle(const int* originCoord, const int* destinationCoord);
-        bool regularMoveLogic(const int* originCoord, const int* destinationCoord, const ChessPiece* currentKing);
+        bool regularMoveLogic(const int* originCoord, const int* destinationCoord);
         void toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord);
 
         // Helper functions for detectGameState()
