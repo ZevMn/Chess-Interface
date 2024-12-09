@@ -25,7 +25,7 @@ class ChessGame final {
         void submitMove(const char* stringCoord1, const char* stringCoord2);
 
         ChessPiece* chessBoard[ranks][files];
-        
+
         ChessPiece* getPiece(const int* coord);
 
         PieceColour getTurn();
@@ -33,7 +33,7 @@ class ChessGame final {
         int* getEnPassantSquare();
         bool enPassantCapture = false;
 
-        void printBoard();
+        //void printBoard();
 
     private:
         PieceColour turn;

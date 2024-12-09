@@ -145,9 +145,10 @@ void ChessGame::loadState(const char* fenString) {
 
     gameLoaded = true;
     cout << "A new board state is loaded!\n";
-    printBoard();
+    //printBoard();
 
-    turn = (turn == white ? black : white);
+    // Simulate the opponent just finishing their turn in case the board loads in a state of check, checkmate, stalemate or a draw
+    turn = (turn == white ? black : white); 
     detectGameState();
     turn = (turn == white ? black : white);
 }
@@ -237,9 +238,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     delete [] destinationCoord;
     destinationCoord = nullptr;
 
-    cout << "\n\n";
-    printBoard();
-    cout << "\n\n";
+    // cout << "\n\n";
+    // printBoard();
+    // cout << "\n\n";
 }
 
 void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
@@ -989,33 +990,33 @@ bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, Chess
 //     cout <<             "      A              B              C              D              E              F              G              H      " << "\n";
 // }
 
-void ChessGame::printBoard() {
-    // Unicode symbols for chess pieces
-    const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
-        {{king, black}, "♔"}, {{queen, black}, "♕"}, {{rook, black}, "♖"},
-        {{bishop, black}, "♗"}, {{knight, black}, "♘"}, {{pawn, black}, "♙"},
-        {{king, white}, "♚"}, {{queen, white}, "♛"}, {{rook, white}, "♜"},
-        {{bishop, white}, "♝"}, {{knight, white}, "♞"}, {{pawn, white}, "♟"}
-    };
+// void ChessGame::printBoard() {
+//     // Unicode symbols for chess pieces
+//     const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
+//         {{king, black}, "♔"}, {{queen, black}, "♕"}, {{rook, black}, "♖"},
+//         {{bishop, black}, "♗"}, {{knight, black}, "♘"}, {{pawn, black}, "♙"},
+//         {{king, white}, "♚"}, {{queen, white}, "♛"}, {{rook, white}, "♜"},
+//         {{bishop, white}, "♝"}, {{knight, white}, "♞"}, {{pawn, white}, "♟"}
+//     };
 
-    std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
-    std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Top border
+//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
+//     std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Top border
 
-    for (int rank = 7; rank >= 0; rank--) {
-        std::cout << (rank + 1) << " |"; // Row label
-        for (int file = 0; file < 8; file++) {
-            ChessPiece* piece = chessBoard[rank][file];
-            if (piece == nullptr) {
-                std::cout << "  |"; // Empty square
-            } else {
-                auto type = piece->getType();
-                auto colour = piece->getColour();
-                std::cout << pieceSymbols.at({type, colour}) << " |";
-            }
-        }
-        std::cout << " " << (rank + 1) << "\n"; // Row label on the right
-        std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Row separator
-    }
+//     for (int rank = 7; rank >= 0; rank--) {
+//         std::cout << (rank + 1) << " |"; // Row label
+//         for (int file = 0; file < 8; file++) {
+//             ChessPiece* piece = chessBoard[rank][file];
+//             if (piece == nullptr) {
+//                 std::cout << "  |"; // Empty square
+//             } else {
+//                 auto type = piece->getType();
+//                 auto colour = piece->getColour();
+//                 std::cout << pieceSymbols.at({type, colour}) << " |";
+//             }
+//         }
+//         std::cout << " " << (rank + 1) << "\n"; // Row label on the right
+//         std::cout << "  +--+--+--+--+--+--+--+--+\n"; // Row separator
+//     }
 
-    std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
-}
+//     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
+// }
