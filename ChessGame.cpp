@@ -32,6 +32,8 @@ PieceColour ChessGame::getTurn() {
 }
 
 void ChessGame::loadState(const char* fenString) {
+    endGame = false;
+
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             if (chessBoard[i][j] != nullptr) {
@@ -107,44 +109,60 @@ void ChessGame::loadState(const char* fenString) {
 
     /* PART 4: EN PASSANT SQUARES */
     i++;
-    if (fenString[i] == '-') {
+    if (fenString[i] != '\0') { // If the full FEN string is inputted
+        if (fenString[i] == '-') {
         i++;
-    }
-    else {
-        const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
+        }
+        else {
+            const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
 
-        int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
+            int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
 
-        enPassantSquare[0] = temporaryEnPassantSquare[0];
-        enPassantSquare[1] = temporaryEnPassantSquare[1];
+            enPassantSquare[0] = temporaryEnPassantSquare[0];
+            enPassantSquare[1] = temporaryEnPassantSquare[1];
 
-        delete [] temporaryEnPassantSquare;
-        temporaryEnPassantSquare = nullptr;
+            delete [] temporaryEnPassantSquare;
+            temporaryEnPassantSquare = nullptr;
 
-        i += 2; // i will hold the position of the fourth blank space
-    }
+            i += 2; // i will hold the position of the fourth blank space
+        }
 
-    /* PART 5: HALF-MOVE COUNTER */
-    i++;
-    for (int count = 0; fenString[i] != ' '; count++) {
-        halfMoveCounter += (fenString[i]-'0') * pow(10, count);
-        i++; // At the end of the loop, i will hold the position of the fifth blank space
-    }
-
-    /* PART 6: FULL-MOVE COUNTER */
-    i++;
-    for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
-        fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+        /* PART 5: HALF-MOVE COUNTER */
         i++;
-    }
+        for (int count = 0; fenString[i] != ' '; count++) {
+            halfMoveCounter += (fenString[i]-'0') * pow(10, count);
+            i++; // At the end of the loop, i will hold the position of the fifth blank space
+        }
 
+        /* PART 6: FULL-MOVE COUNTER */
+        i++;
+        for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
+            fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+            i++;
+        }
+    }
+    
+
+    gameLoaded = true;
     cout << "A new board state is loaded!\n";
     printBoard();
 
+    turn = (turn == white ? black : white);
     detectGameState();
+    turn = (turn == white ? black : white);
 }
 
 void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
+
+    if (endGame) {
+        cout << "\nGame is already over\n";
+        gameLoaded = false;
+        return;
+    }
+    if (!gameLoaded) {
+        cout << "\nA game has not been loaded\n";
+        return;
+    }
 
     int* originCoord = coordToIndex(stringCoord1);
     int* destinationCoord = coordToIndex(stringCoord2);
@@ -350,7 +368,6 @@ ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, c
 void ChessGame::detectGameState() {
 
     bool checkDetected = false;
-    bool endGame = false;
 
     // DETECT CHECK
     if (detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), black, true) || detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), white, true)) {
@@ -399,26 +416,17 @@ bool ChessGame::anyPiecesCanMove() {
 
             ChessPiece* pieceToMove = chessBoard[ranks][files];
 
+            // If (non-king) piece belongs to opponent
             if ((pieceToMove != nullptr) && (pieceToMove->getColour() != turn) && (pieceToMove->getType() != king)) {
-
-                int rank = pieceToMove->getRankIndex();
-                int file = pieceToMove->getFileIndex();
-                int originCoord[2] = {rank, file};
 
                 // Iterate through unit moves
                 for (uint32_t move = 0; move < pieceToMove->getUnitMoves().size(); move++) {
-                    int newRank = rank + pieceToMove->getUnitMoves()[move][0];
-                    int newFile = file + pieceToMove->getUnitMoves()[move][1];
+                    int newRank = ranks + pieceToMove->getUnitMoves()[move][0];
+                    int newFile = files + pieceToMove->getUnitMoves()[move][1];
 
-                    // Pawn logic
+                    int originCoord[2] = {ranks, files};
                     int destinationCoord[2] = {newRank, newFile};
-                    if (pieceToMove->getType() == pawn) {
-                        return pieceToMove->isValidMovePattern(originCoord, destinationCoord);
-                    }
-
-                    // Other pieces logic
-                    ChessPiece* newSquare = chessBoard[newRank][newFile];
-                    if ((newSquare == nullptr) || (newSquare->getColour() == turn)) {
+                    if(pieceToMove->isValidMovePattern(originCoord, destinationCoord)) {
                         return true;
                     }
                 }
@@ -653,11 +661,14 @@ bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* or
 
 void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
 
-    chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
-    chessBoard[originCoord[0]][originCoord[1]] = nullptr;
+    if (chessBoard[originCoord[0]][originCoord[1]] != nullptr) { // Safety check
 
-    if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
-        (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
+        chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
+        chessBoard[originCoord[0]][originCoord[1]] = nullptr;
+
+        if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
+            (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
+        }
     }
 }
 
@@ -744,14 +755,17 @@ bool ChessGame::attemptBlockCheck(ChessPiece* piece) {
     int file = piece->getFileIndex();
     int originCoords[2] = {rank, file};
 
-    for (uint32_t move = 0; move < piece->getUnitMoves().size(); move++) {
+    for (uint32_t move = 0; move < piece->getUnitMoves().size(); move++) { // Iterate through all possible moves for the piece
+
         if (piece->getType() == rook || piece->getType() == bishop || piece->getType() == queen) {
-            for (int multiplier = 1; multiplier <= 8; multiplier++) {
+            for (int multiplier = 1; multiplier <= 8; multiplier++) { // For pieces that can move any multiple of squares in their allowed directions
+
                 int newRank = rank + multiplier*piece->getUnitMoves()[move][0];
                 int newFile = file + multiplier*piece->getUnitMoves()[move][1];
                 int destinationCoords[2] = {newRank, newFile};
+
                 if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) { // Boundary checks
-                    if (chessBoard[newRank][newFile] == nullptr) {
+                    if (chessBoard[newRank][newFile] == nullptr) { // If square empty
                         makeMove(originCoords, destinationCoords);
                         if ((turn == black && !detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), whiteKing->getColour(), true)) || (turn == white && !detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), blackKing->getColour(), true))) {
                             makeMove(destinationCoords, originCoords);
@@ -978,10 +992,10 @@ bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, Chess
 void ChessGame::printBoard() {
     // Unicode symbols for chess pieces
     const std::map<std::pair<PieceType, PieceColour>, std::string> pieceSymbols = {
-        {{king, white}, "♔"}, {{queen, white}, "♕"}, {{rook, white}, "♖"},
-        {{bishop, white}, "♗"}, {{knight, white}, "♘"}, {{pawn, white}, "♙"},
-        {{king, black}, "♚"}, {{queen, black}, "♛"}, {{rook, black}, "♜"},
-        {{bishop, black}, "♝"}, {{knight, black}, "♞"}, {{pawn, black}, "♟"}
+        {{king, black}, "♔"}, {{queen, black}, "♕"}, {{rook, black}, "♖"},
+        {{bishop, black}, "♗"}, {{knight, black}, "♘"}, {{pawn, black}, "♙"},
+        {{king, white}, "♚"}, {{queen, white}, "♛"}, {{rook, white}, "♜"},
+        {{bishop, white}, "♝"}, {{knight, white}, "♞"}, {{pawn, white}, "♟"}
     };
 
     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels
@@ -1004,10 +1018,4 @@ void ChessGame::printBoard() {
     }
 
     std::cout << "   a  b  c  d  e  f  g  h\n"; // Column labels again
-}
-
-
-void ChessGame::endGame() {
-    return;
-    //exit(0);
 }

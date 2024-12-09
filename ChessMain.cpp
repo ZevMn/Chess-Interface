@@ -11,20 +11,20 @@ int main() {
 	cout << "========================\n\n";
 
 	ChessGame cg;
-	// cg.loadState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-	// cout << '\n';
+	cg.loadState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+	cout << '\n';
 
-	// cg.submitMove("D7", "D6");
-	// cout << '\n';
+	cg.submitMove("D7", "D6");
+	cout << '\n';
 
-	// cg.submitMove("D4", "H6");
-	// cout << '\n';
+	cg.submitMove("D4", "H6");
+	cout << '\n';
 
-	// cg.submitMove("D2", "D4");
-	// cout << '\n';
+	cg.submitMove("D2", "D4");
+	cout << '\n';
 
-	// cg.submitMove("F8", "B4");
-	// cout << '\n';
+	cg.submitMove("F8", "B4");
+	cout << '\n';
 
 	cout << "=========================\n";
 	cout << "Alekhine vs. Vasic (1931)\n";
@@ -76,53 +76,53 @@ int main() {
 	cg.submitMove("D3", "G6");
 	cout << '\n';
 
-	// // =========================================
-	// // EXTRA TESTS..............................
-	// // =========================================
+	// =========================================
+	// EXTRA TESTS..............................
+	// =========================================
 
-    // cout << "========================\n";
-    // cout << "Testing Stalemate 1\n";
-    // cout << "========================\n\n";
+    cout << "========================\n";
+    cout << "Testing Stalemate 1\n";
+    cout << "========================\n\n";
 
-    // cg.loadState("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1");
-    // cout << '\n';
+    cg.loadState("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1");
+    cout << '\n';
 
-    // cg.submitMove("H8", "H7"); // Black King moves, leading to stalemate
-    // cout << '\n';
+    cg.submitMove("H8", "H7"); // Black King moves, leading to stalemate
+    cout << '\n';
 
-	// cout << "========================\n";
-    // cout << "Testing Stalemate 2\n";
-    // cout << "========================\n\n";
+	cout << "========================\n";
+    cout << "Testing Stalemate 2\n";
+    cout << "========================\n\n";
 
-    // cg.loadState("7k/4Q3/6K1/8/8/8/8/8 w - - 0 1");
-    // cout << '\n';
+    cg.loadState("7k/4Q3/6K1/8/8/8/8/8 w - - 0 1");
+    cout << '\n';
 
-    // cg.submitMove("E7", "F7");
-	// cg.submitMove("H8", "H7");
-    // cout << '\n';
+    cg.submitMove("E7", "F7");
+	cg.submitMove("H8", "H7");
+    cout << '\n';
 	
 
-    // cout << "========================\n";
-    // cout << "Testing Castling\n";
-    // cout << "========================\n\n";
+    cout << "========================\n";
+    cout << "Testing Castling\n";
+    cout << "========================\n\n";
 
-    // cg.loadState("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
-    // cout << '\n';
+    cg.loadState("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
+    cout << '\n';
 
-    // cg.submitMove("E1", "G1"); // White kingside castling
-    // cg.submitMove("E8", "C8"); // Black queenside castling
-    // cout << '\n';
+    cg.submitMove("E1", "G1"); // White kingside castling
+    cg.submitMove("E8", "C8"); // Black queenside castling
+    cout << '\n';
 
 
-    // cout << "========================\n";
-    // cout << "Testing En Passant\n";
-    // cout << "========================\n\n";
+    cout << "========================\n";
+    cout << "Testing En Passant\n";
+    cout << "========================\n\n";
 
-    // cg.loadState("4k3/8/8/3Pp3/8/8/8/4K3 w - e6 0 1");
-    // cout << '\n';
+    cg.loadState("4k3/8/8/3Pp3/8/8/8/4K3 w - e6 0 1");
+    cout << '\n';
 
-    // cg.submitMove("D5", "E6"); // En passant capture
-    // cout << '\n';
+    cg.submitMove("D5", "E6"); // En passant capture
+    cout << '\n';
 
 
 

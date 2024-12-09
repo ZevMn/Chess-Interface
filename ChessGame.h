@@ -21,11 +21,11 @@ class ChessGame final {
         ChessGame();
         ~ChessGame();
 
-        ChessPiece* chessBoard[ranks][files];
-
         void loadState(const char* fenString);
         void submitMove(const char* stringCoord1, const char* stringCoord2);
 
+        ChessPiece* chessBoard[ranks][files];
+        
         ChessPiece* getPiece(const int* coord);
 
         PieceColour getTurn();
@@ -39,6 +39,9 @@ class ChessGame final {
         PieceColour turn;
         int halfMoveCounter;
         int fullMoveCounter;
+
+        bool gameLoaded = false;
+        bool endGame = false;
 
         bool pieceAtDestinationSquare;
         PieceType capturedPieceName;
@@ -97,8 +100,6 @@ class ChessGame final {
         ChessPiece* findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction);
         bool detectKnightInRange(int rank, int file, PieceColour colour);
         bool doesPieceSeeSquare(int rank, int file, PieceColour colour, ChessPiece* nearestNeighbour, const Directions& direction);
-
-        void endGame();
 };
 
 #endif
