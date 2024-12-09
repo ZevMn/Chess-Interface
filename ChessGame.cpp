@@ -226,7 +226,9 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         }
 
         detectGameState();
-        switchTurn();
+        if (!endGame) {
+            switchTurn();
+        }
     }
 
     else {
@@ -377,21 +379,21 @@ void ChessGame::detectGameState() {
     
     // DETECT CHECKMATE
     if (turn == black && whiteInCheck && detectCheckmate(whiteKing)) {
-        cout << "\nWhite is in checkmate\n";
+        cout << "\nWhite is in checkmate";
         endGame = true;
     }
     if (turn == white && blackInCheck && detectCheckmate(blackKing)) {
-        cout << "\nBlack is in checkmate\n";
+        cout << "\nBlack is in checkmate";
         endGame = true;
     }
 
     // DETECT STALEMATE
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
-        cout << "\nEnd of game - Stalemate\n";
+        cout << "\nEnd of game - Stalemate";
         endGame = true;
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
-        cout << "\nEnd of game - Stalemate\n";
+        cout << "\nEnd of game - Stalemate";
         endGame = true;
     }
 
