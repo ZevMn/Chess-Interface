@@ -78,7 +78,7 @@ class ChessGame final {
         bool anyPiecesCanMove();
 
         // Helper functions for makeMove()
-        void deletePiece(ChessPiece* pieceToDelete);
+        void deletePiece(ChessPiece* &pieceToDelete);
         bool detectCheck(int rank, int file, PieceColour colour, bool lookingAtKing);
         bool detectCheckmate(ChessPiece* king);
         bool pieceCanBlock(ChessPiece* king);

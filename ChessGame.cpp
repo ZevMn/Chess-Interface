@@ -78,12 +78,7 @@ void ChessGame::loadState(const char* fenString) {
 
     /* PART 2: ACTIVE COLOUR */
     i++;
-    if (fenString[i] == 'w') {
-        turn = white;
-    }
-    else {
-        turn = black;
-    }
+    turn = (fenString[i] == 'w' ? white : black);
     i++; // i will hold the position of the second blank space
 
     /* PART 3: CASTLING RIGHTS */
@@ -190,8 +185,6 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         else if (enPassantCapture) { // There will never be a piece at destination square in en passant
             int pawnCapturedRank = (turn == white ? 4 : 3);
             doCapture(chessBoard[pawnCapturedRank][destinationCoord[1]]);
-            // This does not work (why?): deletePiece(chessBoard[pawnCapturedRank][destinationCoord[1]]);
-            cout << chessBoard[pawnCapturedRank][destinationCoord[1]];
         }
 
         // SET EN PASSANT SQUARE FOR NEXT TURN
@@ -359,23 +352,6 @@ void ChessGame::detectGameState() {
     bool checkDetected = false;
     bool endGame = false;
 
-    /*-------------TEST--------------*/
-    if (detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), black, true)) {
-        cout << "\n\nBLACK IS IN CHECK\n\n";
-    }
-    if (detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), white, true)) {
-        cout << "\n\nWHITE IS IN CHECK\n\n";
-    }
-    if (chessBoard[7][7] != nullptr) {
-        cout << chessBoard[7][7] << "<- (7, 7)\n";
-        cout << blackKing->getRankIndex() << endl;
-    }
-    if (chessBoard[6][7] != nullptr) {
-        cout << chessBoard[6][7] << "<- (6, 7)\n";
-        cout << blackKing->getRankIndex() << endl;
-    }
-    /*-------------TEST--------------*/
-
     // DETECT CHECK
     if (detectCheck(blackKing->getRankIndex(), blackKing->getFileIndex(), black, true) || detectCheck(whiteKing->getRankIndex(), whiteKing->getFileIndex(), white, true)) {
         checkDetected = true;
@@ -393,11 +369,11 @@ void ChessGame::detectGameState() {
 
     // DETECT STALEMATE
     if (turn == white && !blackInCheck && !anySafeSquares(blackKing) && !anyPiecesCanMove()) { // If no black pieces can move
-        cout << "\nEnd of game - stalemate\n";
+        cout << "\nEnd of game - Stalemate\n";
         endGame = true;
     }
     if (turn == black && !whiteInCheck && !anySafeSquares(whiteKing) && !anyPiecesCanMove()) { // If no white pieces can move
-        cout << "\nEnd of game - stalemate\n";
+        cout << "\nEnd of game - Stalemate\n";
         endGame = true;
     }
 
@@ -683,13 +659,19 @@ void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
     if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
         (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
     }
-    cout << endl << "(" << destinationCoord[0] << ", " << destinationCoord[1] << ")" << endl;
-    cout << blackKing->getRankIndex() << endl;
-    cout << whiteKing->getRankIndex() << endl;
 }
 
 void ChessGame::doCapture(ChessPiece* pieceToCapture) {
     cout << " taking " << pieceToCapture->getColour() << "'s " << pieceToCapture->getType();
+
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (chessBoard[i][j] == pieceToCapture) {
+                chessBoard[i][j] = nullptr; // Avoid dangling pointer in chessBoard
+                break;
+            }
+        }
+    }
 
     if (enPassantCapture) {
         cout << " via en passant";
@@ -707,7 +689,7 @@ void ChessGame::switchTurn() {
     turn = (turn == white) ? black : white;
 }
 
-void ChessGame::deletePiece(ChessPiece* pieceToDelete) {
+void ChessGame::deletePiece(ChessPiece* &pieceToDelete) {
     delete pieceToDelete;
     pieceToDelete = nullptr;
 }
