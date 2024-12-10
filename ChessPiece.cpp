@@ -9,8 +9,8 @@
 using namespace std;
 
 /* CHESS PIECE */
-ChessPiece::ChessPiece(PieceColour c, PieceType t, int rank, int file, ChessGame& chessGame) 
-: colour(c), type(t), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
+ChessPiece::ChessPiece(PieceColour colour, PieceType type, int rank, int file, ChessGame& chessGame) 
+: colour(colour), type(type), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
 
 ChessPiece::~ChessPiece() {}
 
