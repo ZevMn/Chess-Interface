@@ -10,6 +10,10 @@
 
 using namespace std;
 
+
+/****************************** ChessGame - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), blackInCheck(false), blackKing(nullptr), whiteKing(nullptr) {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
@@ -18,22 +22,28 @@ ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), b
     }
 }
 
+/* DESTRUCTOR */
 ChessGame::~ChessGame() {
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
-            delete chessBoard[i][j];
-            chessBoard[i][j] = nullptr;
+            if (chessBoard[i][j] != nullptr) {
+                delete chessBoard[i][j];
+                chessBoard[i][j] = nullptr;
+            }
         }
     }
 }
 
+/* GETTER FOR 'turn' */
 PieceColour ChessGame::getTurn() {
     return turn;
 }
 
 void ChessGame::loadState(const char* fenString) {
-    endGame = false;
 
+    endGame = false; // Indicates that a game is in progress
+
+    // Clean any previously loaded chess game
     for (int i=0; i<8; i++) {
         for (int j=0; j<8; j++) {
             if (chessBoard[i][j] != nullptr) {

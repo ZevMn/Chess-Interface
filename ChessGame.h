@@ -11,6 +11,9 @@ class ChessPiece;
 
 const int ranks = 8, files = 8;
 
+
+/****************************** Class ChessPiece ******************************/
+
 class ChessGame final {
 
     public:
