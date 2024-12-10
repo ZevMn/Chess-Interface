@@ -188,7 +188,7 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         }
         // REGULAR MOVE
         else if (!regularMoveLogic(originCoord, destinationCoord)) {
-            cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid";
+            cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid\n";
             return;
         }
 
@@ -230,7 +230,7 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     }
 
     else {
-        cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid";
+        cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid\n";
     }
 
     delete [] originCoord;
@@ -551,15 +551,19 @@ bool ChessGame::checkNoFriendlyCapture(ChessPiece* pieceAtDestination) {
 }
 
 bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoord) {
+    // NB: No boundary checks necessary as originCoord and destinationCoord will
+    //     already have been validated when this function is called.
 
     if (originCoord[0] == destinationCoord[0]) { // If travelling along the same rank
 
-        for (int i=1; i < abs(destinationCoord[0]-originCoord[0]);i++) {
-            if ((destinationCoord[0] > originCoord[0]) && (chessBoard[originCoord[0] + i][originCoord[1]] != nullptr)) {
+        for (int i=1; i < abs(destinationCoord[1]-originCoord[1]); i++) { // Excludes destination square
+            // Check path clear to the right
+            if ((destinationCoord[1] > originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] + i] != nullptr)) {
                 cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }
-            else if ((destinationCoord[0] < originCoord[0]) && (chessBoard[originCoord[0] - i][originCoord[1]] != nullptr)) {
+            // Check path clear to the left
+            if ((destinationCoord[1] < originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] - i] != nullptr)) {
                 cout << "ERROR: Cannot make move - path is not clear\n";
                     return false;
             }
@@ -568,12 +572,14 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
 
     else if (originCoord[1] == destinationCoord[1]) { // If travelling along the same file
             
-        for (int i=1; i < abs(destinationCoord[1]-originCoord[1]);i++) {
-            if ((destinationCoord[1] > originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] + i] != nullptr)) {
+        for (int i=1; i < abs(destinationCoord[0]-originCoord[0]); i++) { // Excludes destination square
+            // Check path clear upwards
+            if ((destinationCoord[0] > originCoord[0]) && (chessBoard[originCoord[0] + i][originCoord[1]] != nullptr)) {
                 cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }
-            else if ((destinationCoord[1] < originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] - i] != nullptr)) {
+            // Check path clear downwards
+            if ((destinationCoord[0] < originCoord[0]) && (chessBoard[originCoord[0] - i][originCoord[1]] != nullptr)) {
                 cout << "ERROR: Cannot make move - path is not clear\n";
                 return false;
             }

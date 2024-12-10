@@ -176,16 +176,34 @@ class ChessPiece {
 class Pawn : public ChessPiece {
 
     public:
+        /* 
+		 * Parameterised constructor to intialise a pawn with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'pawn' and unitMoves to corresponding moveset of a pawn.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         Pawn(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
-        // bool canEnPassant
-        // promote()
 };
 
 class Rook : public ChessPiece {
 
     public:
+        /* 
+		 * Parameterised constructor to intialise a rook with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'rook' and unitMoves to corresponding moveset of a rook.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         Rook(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
@@ -194,6 +212,16 @@ class Rook : public ChessPiece {
 class Knight : public ChessPiece {
 
     public:
+        /* 
+		 * Parameterised constructor to intialise a knight with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'knight' and unitMoves to corresponding moveset of a knight.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         Knight(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
@@ -202,6 +230,16 @@ class Knight : public ChessPiece {
 class Bishop : public ChessPiece {
     
     public:
+        /* 
+		 * Parameterised constructor to intialise a bishop with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'bishop' and unitMoves to corresponding moveset of a bishop.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         Bishop(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
@@ -210,6 +248,16 @@ class Bishop : public ChessPiece {
 class Queen : public ChessPiece {
 
     public:
+        /* 
+		 * Parameterised constructor to intialise a queen with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'queen' and unitMoves to corresponding moveset of a queen.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         Queen(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
@@ -218,6 +266,16 @@ class Queen : public ChessPiece {
 class King : public ChessPiece {
 
     public:
+        /* 
+		 * Parameterised constructor to intialise a king with colour, rank, 
+         * file and a reference to the associated chessGame. Initialises type 
+         * to 'king' and unitMoves to corresponding moveset of a king.
+		 *
+		 * @param colour The colour of the chess piece.
+         * @param rank The rank of the square occupied by the chess piece.
+         * @param file The file of the square occupied by the chess piece.
+         * @param chessGame The chess game that the chess piece belongs to.
+		 */
         King(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;

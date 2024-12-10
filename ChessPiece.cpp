@@ -122,11 +122,11 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
     int advance = newRank - oldRank;
 
-    if (oldFile == newFile) { // Regular pawn move
+    if (oldFile == newFile) { // Move without capture
         if (colour == white && (advance == 1 || (oldRank == 1 && advance == 2))) {
             return true;
         }
-        else if (advance == -1 || (oldRank == 6 && advance == -2)) {
+        if (colour == black && (advance == -1 || (oldRank == 6 && advance == -2))) {
             return true;
         }
     }

@@ -124,6 +124,17 @@ int main() {
     cg.submitMove("D5", "E6"); // En passant capture
     cout << '\n';
 
+	cout << "=====================================\n";
+    cout << "Testing Escape Checkmate by capture\n";
+    cout << "=====================================\n\n";
+
+    cg.loadState("7k/8/8/8/8/8/8/6QK w - - 0 1");
+    cout << '\n';
+
+    cg.submitMove("G1", "G7"); // Queen moves to put king in check
+	cg.submitMove("H8", "G7"); // King takes queen leading to draw by insufficient material (not implemented)
+	cout << "\n";
+
 
 
 
