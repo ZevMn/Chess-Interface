@@ -1,4 +1,13 @@
-// Implementation file "ChessPiece.cpp"
+/* 
+ * ChessPiece.cpp - Implementation file for the ChessPiece abstract class 
+ * and the sub-classes representing the different chess pieces
+ * and their behaviour in a chess game.
+ */
+
+ /* 
+  * Author: Zev Menachemson
+  * Last Edited: 10/12/2024
+  */
 
 #include "ChessPiece.h"
 #include "ChessGame.h"
@@ -8,12 +17,17 @@
 
 using namespace std;
 
-/* CHESS PIECE */
+
+/****************************** ChessPiece - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 ChessPiece::ChessPiece(PieceColour colour, PieceType type, int rank, int file, ChessGame& chessGame) 
 : colour(colour), type(type), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
 
+/* DESTRUCTOR */
 ChessPiece::~ChessPiece() {}
 
+/* OVERLOADING THE << OPERATOR FOR 'ChessPiece*' */
 std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
 
     if (chessPiece->colour == white) {
@@ -42,30 +56,7 @@ std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
     return os;
 }
 
-char ChessPiece::getAbbrName() const {
-    return abbrName;
-}
-
-PieceType ChessPiece::getType() const {
-    return type;
-}
-
-PieceColour ChessPiece::getColour() const {
-    return colour;
-}
-
-int ChessPiece::getRankIndex() const {
-    return rankIndex;
-}
-
-int ChessPiece::getFileIndex() const {
-    return fileIndex;
-}
-
-std::vector<std::vector<int>> ChessPiece::getUnitMoves() const {
-    return unitMoves;
-}
-
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID BY CALLING isValidMovementPattern FOR A GIVEN CHESS PIECE */
 bool ChessPiece::checkMovementPattern(const int* originCoord, const int* destinationCoord, const char* stringCoord2) const {
     if (!isValidMovePattern(originCoord, destinationCoord)) {
         cout << colour << "'s " << type << " cannot move to " << stringCoord2 << "!\n";
@@ -74,9 +65,42 @@ bool ChessPiece::checkMovementPattern(const int* originCoord, const int* destina
     return true;
 }
 
-/* PAWN */
+/* GETTER FOR 'abbrName' */
+char ChessPiece::getAbbrName() const {
+    return abbrName;
+}
+
+/* GETTER FOR 'type' */
+PieceType ChessPiece::getType() const {
+    return type;
+}
+
+/* GETTER FOR 'colour' */
+PieceColour ChessPiece::getColour() const {
+    return colour;
+}
+
+/* GETTER FOR 'rank'' */
+int ChessPiece::getRankIndex() const {
+    return rankIndex;
+}
+
+/* GETTER FOR 'file' */
+int ChessPiece::getFileIndex() const {
+    return fileIndex;
+}
+
+/* GETTER FOR 'unitMoves' */
+std::vector<std::vector<int>> ChessPiece::getUnitMoves() const {
+    return unitMoves;
+}
+
+
+/****************************** Pawn - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 Pawn::Pawn(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, pawn, rank, file, chessGame) {
-    if (c == white) { // DEAL WITH SPECIAL CASE OF PAWN CAPTURE SOMEHOW
+    if (c == white) { // Pawn capture logic is dealt with further in ChessGame class
         unitMoves = {{1, 0}, {1, 1}, {1, -1}};
     }
     else {
@@ -84,6 +108,7 @@ Pawn::Pawn(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece
     }
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A PAWN */
 bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
 
     int oldRank = coords1[0];
@@ -118,11 +143,15 @@ bool Pawn::isValidMovePattern(const int* coords1, const int* coords2) const {
     return false;
 }
 
-// ROOK
+
+/****************************** Rook - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 Rook::Rook(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, rook, rank, file, chessGame) {
     unitMoves = {{1,0}, {-1,0}, {0,1}, {0,-1}};
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A ROOK */
 bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (coord2[0] == coord1[0] || coord2[1] == coord1[1]) { // If moving along a rank or a file
@@ -131,11 +160,15 @@ bool Rook::isValidMovePattern(const int* coord1, const int* coord2) const {
     return false;
 }
 
-// KNIGHT
+
+/****************************** Knight - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 Knight::Knight(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, knight, rank, file, chessGame) {
     unitMoves = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A KNIGHT */
 bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if ((abs(coord2[1] - coord1[1]) == 1) && (abs(coord2[0] - coord1[0]) == 2)) {
@@ -147,11 +180,15 @@ bool Knight::isValidMovePattern(const int* coord1, const int* coord2) const {
     return false;        
 }
 
-// BISHOP
+
+/****************************** Bishop - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 Bishop::Bishop(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, bishop, rank, file, chessGame) {
     unitMoves = {{1,1}, {-1,-1}, {1,-1}, {-1,1}};
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A BISHOP */
 bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (abs(coord2[1] - coord1[1]) == abs(coord2[0] - coord1[0])) {
@@ -160,11 +197,15 @@ bool Bishop::isValidMovePattern(const int* coord1, const int* coord2) const {
     return false;
 }
 
-// QUEEN
+
+/****************************** Queen - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 Queen::Queen(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, queen, rank, file, chessGame) {
     unitMoves = {{1,0}, {-1,0}, {0,1}, {0,-1}, {1,1}, {-1,-1}, {1,-1}, {-1,1}};
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A QUEEN */
 bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if (coord2[0] == coord1[0] || coord2[1] == coord1[1]) { // Rook logic
@@ -177,11 +218,15 @@ bool Queen::isValidMovePattern(const int* coord1, const int* coord2) const {
     
 }
 
-// KING
+
+/****************************** King - Member Function Definitions ******************************/
+
+/* CONSTRUCTOR */
 King::King(PieceColour c, int rank, int file, ChessGame& chessGame) : ChessPiece(c, king, rank, file, chessGame) {
     unitMoves = {{1,0}, {-1,0}, {0,1}, {0,-1}, {1,1}, {-1,-1}, {1,-1}, {-1,1}};
 }
 
+/* DETERMINES IF A MOVE IS GEOMETRICALLY VALID FOR A KING */
 bool King::isValidMovePattern(const int* coord1, const int* coord2) const {
 
     if ((abs(coord2[0] - coord1[0]) < 2) && (abs(coord2[1] - coord1[1]) < 2)) {

@@ -42,6 +42,16 @@ class ChessPiece {
 		 */
         virtual ~ChessPiece();
 
+        /* Overloads the << operator to output ChessPiece* as the 
+         * full name of the chess piece, specified by colour and type
+         * (e.g. "White Pawn").
+         * 
+         * @param os A reference to the output stream.
+         * @param chessPiece The pointer to the chess piece to display.
+         * @return The modified output stream reference.
+         */
+        friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
+
         /* MEMBER FUNCTIONS: */
 
         /* 
@@ -67,16 +77,6 @@ class ChessPiece {
          * @return 'true' if the move is geometrically valid, otherwise 'false'. 
          */
         virtual bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const = 0;
-
-        /* Overloads the << operator to output ChessPiece* as the 
-         * full name of the chess piece, specified by colour and type
-         * (e.g. "White Pawn").
-         * 
-         * @param os A reference to the output stream.
-         * @param chessPiece The pointer to the chess piece to display.
-         * @return The modified output stream reference.
-         */
-        friend std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece);
 
         /* GETTER FUNCTIONS: */
 
@@ -141,6 +141,7 @@ class ChessPiece {
         ChessGame& chessGame; // A reference to the chess game that the piece belongs to.
 };
 
+
 /****************************** ChessPiece Sub-Class 1: Pawn ******************************/
 
 class Pawn : public ChessPiece {
@@ -158,8 +159,18 @@ class Pawn : public ChessPiece {
 		 */
         Pawn(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a pawn. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
 
 /****************************** ChessPiece Sub-Class 2: Rook ******************************/
 
@@ -178,8 +189,18 @@ class Rook : public ChessPiece {
 		 */
         Rook(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a rook. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
 
 /****************************** ChessPiece Sub-Class 3: Knight ******************************/
 
@@ -198,8 +219,18 @@ class Knight : public ChessPiece {
 		 */
         Knight(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a knight. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
 
 /****************************** ChessPiece Sub-Class 4: Bishop ******************************/
 
@@ -218,8 +249,18 @@ class Bishop : public ChessPiece {
 		 */
         Bishop(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a bishop. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
 
 /****************************** ChessPiece Sub-Class 5: Queen ******************************/
 
@@ -238,8 +279,18 @@ class Queen : public ChessPiece {
 		 */
         Queen(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a queen. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
 
 /****************************** ChessPiece Sub-Class 6: King ******************************/
 
@@ -258,6 +309,15 @@ class King : public ChessPiece {
 		 */
         King(PieceColour colour, int rank, int file, ChessGame& chessGame);
 
+        /*
+         * Determines if a move is geometrically valid for a king. Overrides the corresponding pure virtual 
+         * function in ChessPiece through dynamic dispatch.
+         *
+         * @param originCoord The coordinates of the initial square occupied by the piece (zero indexed).
+         * @param destinationCoord The coordinates of the destination square (zero indexed).
+         * 
+         * @return 'true' if the move is geometrically valid, otherwise 'false'. 
+         */
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
