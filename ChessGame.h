@@ -11,10 +11,6 @@ class ChessPiece;
 
 const int ranks = 8, files = 8;
 
-enum Directions {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
-
-enum CastlingStatus {regularMove, kingsideCastle, queensideCastle};
-
 class ChessGame final {
 
     public:
@@ -75,6 +71,7 @@ class ChessGame final {
         void castle(const int* originCoord, const int* destinationCoord);
         bool regularMoveLogic(const int* originCoord, const int* destinationCoord);
         void toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord);
+        void generalCannotMoveOutput(const PieceType pieceType, const char* stringCoord2);
 
         // Helper functions for detectGameState()
         bool anySafeSquares(ChessPiece* king);
@@ -93,7 +90,7 @@ class ChessGame final {
         bool checkCoordinatesValid(const int* originCoord, const int* destinationCoord);
         bool checkPieceMoves(const int* originCoord, const int* destinationCoord);
         bool checkNoFriendlyCapture(ChessPiece* pieceAtDestination);
-        bool checkPathClear(const int* originCoord, const int* destinationCoord);
+        bool checkPathClear(const int* originCoord, const int* destinationCoord, const char* stringCoord2);
         bool checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord);
 
         // Helper functions for detectCheck()

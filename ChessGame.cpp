@@ -181,21 +181,23 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     // FIRST DETERMINE IF MOVE IS VALID DISREGARDING STATE OF CHECK
     if (checkMoveValid(originCoord, destinationCoord, stringCoord1, stringCoord2)) {
 
-        // CASTLING
+        // VALIDATE CASTLING
         if (castlingStatus != regularMove) {
-            castle(originCoord, destinationCoord);    
+            castle(originCoord, destinationCoord);
+            cout << turn << " castles " << castlingStatus << "\n";
             castlingStatus = regularMove;
         }
-        // REGULAR MOVE
+        // VALIDATE REGULAR MOVE
         else if (!regularMoveLogic(originCoord, destinationCoord)) {
             cout << "Move " << stringCoord1 << " to " << stringCoord2 << " is not valid\n";
             return;
         }
+        // REGULAR MOVE HAS BEEN VALIDATED
+        else {
+            cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << stringCoord1 << " to " << stringCoord2;
+        }
 
         toggleCastlingFlags(pieceAtOrigin, originCoord);
-
-
-        cout << turn << "'s " << getPiece(destinationCoord)->getType() << " moves from " << stringCoord1 << " to " << stringCoord2;
 
         // CAPTURE LOGIC
         if (pieceAtDestinationSquare) {
@@ -501,7 +503,7 @@ bool ChessGame::checkMoveValid(const int* originCoord, const int* destinationCoo
     if(!pieceAtOrigin->checkMovementPattern(originCoord, destinationCoord, stringCoord2)) {
         return false;
     }
-    if ((pieceAtOrigin->getType() != knight) && !checkPathClear(originCoord, destinationCoord)) {
+    if ((pieceAtOrigin->getType() != knight) && !checkPathClear(originCoord, destinationCoord, stringCoord2)) {
         return false;
     }
 
@@ -550,7 +552,7 @@ bool ChessGame::checkNoFriendlyCapture(ChessPiece* pieceAtDestination) {
     return true;
 }
 
-bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoord) {
+bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoord, const char* stringCoord2) {
     // NB: No boundary checks necessary as originCoord and destinationCoord will
     //     already have been validated when this function is called.
 
@@ -559,12 +561,14 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
         for (int i=1; i < abs(destinationCoord[1]-originCoord[1]); i++) { // Excludes destination square
             // Check path clear to the right
             if ((destinationCoord[1] > originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] + i] != nullptr)) {
-                cout << "ERROR: Cannot make move - path is not clear\n";
+                cout << "Path is not clear - ";
+                generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                 return false;
             }
             // Check path clear to the left
             if ((destinationCoord[1] < originCoord[1]) && (chessBoard[originCoord[0]][originCoord[1] - i] != nullptr)) {
-                cout << "ERROR: Cannot make move - path is not clear\n";
+                cout << "Path is not clear - ";
+                generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                     return false;
             }
         }
@@ -575,12 +579,14 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
         for (int i=1; i < abs(destinationCoord[0]-originCoord[0]); i++) { // Excludes destination square
             // Check path clear upwards
             if ((destinationCoord[0] > originCoord[0]) && (chessBoard[originCoord[0] + i][originCoord[1]] != nullptr)) {
-                cout << "ERROR: Cannot make move - path is not clear\n";
+                cout << "Path is not clear - ";
+                generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                 return false;
             }
             // Check path clear downwards
             if ((destinationCoord[0] < originCoord[0]) && (chessBoard[originCoord[0] - i][originCoord[1]] != nullptr)) {
-                cout << "ERROR: Cannot make move - path is not clear\n";
+                cout << "Path is not clear - ";
+                generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                 return false;
             }
         }
@@ -591,25 +597,29 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
         for (int i=1; i < abs(destinationCoord[0]-originCoord[0]); i++) {
             if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (+,+)
                 if (chessBoard[originCoord[0]+i][originCoord[1]+i] != nullptr) {
-                    cout << "ERROR: Cannot make move - path is not clear\n";
+                    cout << "Path is not clear - ";
+                    generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                     return false;
                 }
             }
             if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (-,-)
                 if (chessBoard[originCoord[0]-i][originCoord[1]-i] != nullptr) {
-                    cout << "ERROR: Cannot make move - path is not clear\n";
+                    cout << "Path is not clear - ";
+                    generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                     return false;
                 }
             }
             if ((destinationCoord[0] > originCoord[0]) && (destinationCoord[1] < originCoord[1])) { // (rank,file) = (+,-)
                 if (chessBoard[originCoord[0]+i][originCoord[1]-i] != nullptr) {
-                    cout << "ERROR: Cannot make move - path is not clear\n";
+                    cout << "Path is not clear - ";
+                    generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                     return false;
                 }
             }
             if ((destinationCoord[0] < originCoord[0]) && (destinationCoord[1] > originCoord[1])) { // (rank,file) = (-,+)
                 if (chessBoard[originCoord[0]-i][originCoord[1]+i] != nullptr) {
-                    cout << "ERROR: Cannot make move - path is not clear\n";
+                    cout << "Path is not clear - ";
+                    generalCannotMoveOutput(getPiece(originCoord)->getType(), stringCoord2);
                     return false;
                 }
             }
@@ -617,6 +627,10 @@ bool ChessGame::checkPathClear(const int* originCoord, const int* destinationCoo
     }
     return true;
 }
+
+void ChessGame::generalCannotMoveOutput(const PieceType pieceType, const char* stringCoord2) {
+        cout << turn << "'s " << pieceType << " cannot move to " << stringCoord2 << "!\n";
+    }
 
 bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord) {
 
@@ -626,20 +640,20 @@ bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* or
     // Player can castle by default. This is toggled elsewhere if respective rook or king have moved
     if (turn == white) {
         if ((castlingStatus == kingsideCastle && !whiteCanCastleKingside) || (castlingStatus == queensideCastle && !whiteCanCastleQueenside)) {
-            cout << "ERROR: You cannot castle if you have moved your king or rook\n"; 
+            cout << "You cannot castle if you have moved your king or rook\n"; 
             return false;
         }
     }
     if (turn == black) {
         if ((castlingStatus == kingsideCastle && !blackCanCastleKingside) || (castlingStatus == queensideCastle && !blackCanCastleQueenside)) {
-            cout << "ERROR: You cannot castle if you have moved your king or rook\n";
+            cout << "You cannot castle if you have moved your king or rook\n";
             return false;
         }
     }
     
     // Cannot castle out of check
     if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
-        cout << "ERROR: Cannot castle - you are in check";
+        cout << "Cannot castle - " << turn << " is in check\n";
         return false;
     }
     
@@ -653,13 +667,13 @@ bool ChessGame::checkCastlingValid(CastlingStatus& castlingStatus, const int* or
     while (chessBoard[rank][file] == nullptr) {
         count++;
         if (detectCheck(rank, file, turn, false)) { // Check if square in check
-            cout << "ERROR: Cannot castle through check\n";
+            cout << "You cannot castle through check\n";
             return false;
         }
         file += jump;
     }    
     if (count != (castlingStatus == kingsideCastle ? 2 : 3)) {
-        cout << "ERROR: Cannot castle - there are pieces in the way\n";
+        cout << "You cannot castle - there are pieces in the way\n";
         return false;
     }
 

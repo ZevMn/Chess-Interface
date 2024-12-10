@@ -12,48 +12,16 @@
 #ifndef CHESSPIECE_H
 #define CHESSPIECE_H
 
+#include "Enums.h"
 #include <string>
 #include <vector>
 
 class ChessGame; // Forward declaration to prevent circular dependency
 
-/* 
- * Enum representing the different types of chess pieces.
- */
-enum PieceType {pawn, rook, knight, bishop, queen, king};
-
-/* 
- * Overloads the << operator to output PieceType 
- * as the name of the chess piece.
- *
- * @param os A reference to the output stream.
- * @param type The piece type to display.
- * @return The modified output stream reference.
- */
-std::ostream &operator<<(std::ostream& os, PieceType type);
-
-/* 
- * Enum representing the two colours in a game of chess.
- */
-enum PieceColour {white, black};
-
-/* 
- * Overloads the << operator to output PieceColour
- * as the name of the colour.
- *
- * @param os A reference to the output stream.
- * @param type The piece colour to display.
- * @return The modified output stream reference.
- */
-std::ostream &operator<<(std::ostream& os, PieceColour colour);
-
 #include "ChessGame.h"
 
-/****************************** Class ChessPiece ******************************/
+/****************************** Abstract Base Class ChessPiece ******************************/
 
-/* 
- * Abstract base class representing a chess piece.
- */
 class ChessPiece {
     public:
         /* 
@@ -173,6 +141,8 @@ class ChessPiece {
         ChessGame& chessGame; // A reference to the chess game that the piece belongs to.
 };
 
+/****************************** ChessPiece Sub-Class 1: Pawn ******************************/
+
 class Pawn : public ChessPiece {
 
     public:
@@ -190,6 +160,8 @@ class Pawn : public ChessPiece {
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
+/****************************** ChessPiece Sub-Class 2: Rook ******************************/
 
 class Rook : public ChessPiece {
 
@@ -209,6 +181,8 @@ class Rook : public ChessPiece {
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
+/****************************** ChessPiece Sub-Class 3: Knight ******************************/
+
 class Knight : public ChessPiece {
 
     public:
@@ -226,6 +200,8 @@ class Knight : public ChessPiece {
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
+/****************************** ChessPiece Sub-Class 4: Bishop ******************************/
 
 class Bishop : public ChessPiece {
     
@@ -245,6 +221,8 @@ class Bishop : public ChessPiece {
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
 
+/****************************** ChessPiece Sub-Class 5: Queen ******************************/
+
 class Queen : public ChessPiece {
 
     public:
@@ -262,6 +240,8 @@ class Queen : public ChessPiece {
 
         bool isValidMovePattern(const int* originCoord, const int* destinationCoord) const override;
 };
+
+/****************************** ChessPiece Sub-Class 6: King ******************************/
 
 class King : public ChessPiece {
 

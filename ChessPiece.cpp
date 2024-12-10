@@ -14,6 +14,34 @@ ChessPiece::ChessPiece(PieceColour colour, PieceType type, int rank, int file, C
 
 ChessPiece::~ChessPiece() {}
 
+std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
+
+    if (chessPiece->colour == white) {
+        os << "white ";
+    }
+    else {
+        os << "black ";
+    }
+
+    switch (chessPiece->type) {
+        case pawn:
+            os << "pawn"; break;
+        case rook:
+            os << "rook"; break;
+        case knight:
+            os << "knight"; break;
+        case bishop:
+            os << "bishop"; break;
+        case queen:
+            os << "queen"; break;
+        case king:
+            os << "king"; break;
+        default:
+            os << "X"; break;
+    }
+    return os;
+}
+
 char ChessPiece::getAbbrName() const {
     return abbrName;
 }
@@ -44,63 +72,6 @@ bool ChessPiece::checkMovementPattern(const int* originCoord, const int* destina
         return false;
     }
     return true;
-}
-
-std::ostream &operator<<(std::ostream& os, ChessPiece* chessPiece) {
-
-    if (chessPiece->colour == white) {
-        os << "white ";
-    }
-    else {
-        os << "black ";
-    }
-
-    switch (chessPiece->type) {
-        case pawn:
-            os << "pawn"; break;
-        case rook:
-            os << "rook"; break;
-        case knight:
-            os << "knight"; break;
-        case bishop:
-            os << "bishop"; break;
-        case queen:
-            os << "queen"; break;
-        case king:
-            os << "king"; break;
-        default:
-            os << "X"; break;
-    }
-    return os;
-}
-
-std::ostream &operator<<(std::ostream& os, PieceType type) {
-
-    switch (type) {
-        case pawn:
-            os << "Pawn"; break;
-        case rook:
-            os << "Rook"; break;
-        case knight:
-            os << "Knight"; break;
-        case bishop:
-            os << "Bishop"; break;
-        case queen:
-            os << "Queen"; break;
-        case king:
-            os << "King"; break;
-    }
-    return os;
-}
-
-std::ostream &operator<<(std::ostream& os, PieceColour colour) {
-    if (colour == white) {
-        os << "White";
-    }
-    else {
-        os << "Black";
-    }
-    return os;
 }
 
 /* PAWN */
