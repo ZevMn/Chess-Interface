@@ -82,8 +82,7 @@ class ChessPiece {
         /* 
          * Getter function for 'abbrName' attribute in ChessPiece class.
          *
-         * @return The character representing the chess piece in 
-         * FEN string notation.
+         * @return The character representing the chess piece in FEN string notation.
          */
         char getAbbrName() const;
 

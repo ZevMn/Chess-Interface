@@ -27,11 +27,6 @@ ChessGame::~ChessGame() {
     cleanChessBoard();
 }
 
-/* GETTER FOR 'turn' */
-PieceColour ChessGame::getTurn() {
-    return turn;
-}
-
 void ChessGame::loadState(const char* fenString) {
 
     cleanChessBoard(); // Clear any previously loaded chess game
@@ -132,11 +127,12 @@ void ChessGame::decodePartFour(const char* fenString, int& i) {
     if (fenString[i] == '-') {
         i++;
     }
-    else {
+    else { // Only one en passant square can exist at any one time
         const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
 
         int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
 
+        // Store as an attribute of ChessGame
         enPassantSquare[0] = temporaryEnPassantSquare[0];
         enPassantSquare[1] = temporaryEnPassantSquare[1];
 
@@ -150,7 +146,7 @@ void ChessGame::decodePartFour(const char* fenString, int& i) {
 void ChessGame::decodePartFive(const char* fenString, int& i) {
     i++;
     for (int count = 0; fenString[i] != ' '; count++) {
-        halfMoveCounter += (fenString[i]-'0') * pow(10, count);
+        halfMoveCounter += (fenString[i]-'0') * pow(10, count); // string -> base 10 integer
         i++; // At the end of the loop, i will hold the position of the fifth blank space
     }
 }
@@ -158,10 +154,61 @@ void ChessGame::decodePartFive(const char* fenString, int& i) {
 void ChessGame::decodePartSix(const char* fenString, int& i) {
     i++;
     for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
-        fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+        fullMoveCounter += (fenString[i]-'0') * pow(10, count); // string -> base 10 integer
         i++;
     }
 }
+
+ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, const int& file) {
+
+    ChessPiece* newPiece = nullptr;
+
+    switch(abbrName) {
+        case 'p':
+            newPiece = new Pawn(black, rank, file, *this);
+            break;
+        case 'P':
+            newPiece = new Pawn(white, rank, file, *this);
+            break;
+        case 'r':
+            newPiece = new Rook(black, rank, file, *this);
+            break;
+        case 'R':
+            newPiece = new Rook(white, rank, file, *this);
+            break;
+        case 'n':
+            newPiece = new Knight(black, rank, file, *this);
+            break;
+        case 'N':
+            newPiece = new Knight(white, rank, file, *this);
+            break;
+        case 'b':
+            newPiece = new Bishop(black, rank, file, *this);
+            break;
+        case 'B':
+            newPiece = new Bishop(white, rank, file, *this);
+            break;
+        case 'q':
+            newPiece = new Queen(black, rank, file, *this);
+            break;
+        case 'Q':
+            newPiece = new Queen(white, rank, file, *this);
+            break;
+        case 'k':
+            newPiece = new King(black, rank, file, *this);
+            blackKing = newPiece;
+            break;
+        case 'K':
+            newPiece = new King(white, rank, file, *this);
+            whiteKing = newPiece;
+            break;
+        default:
+            cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
+            exit(1);
+    }
+    return newPiece;
+}
+
 
 void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
 
@@ -326,56 +373,6 @@ void ChessGame::toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* 
 
 ChessPiece* ChessGame::getPiece(const int* coord) {
     return chessBoard[coord[0]][coord[1]];
-}
-
-ChessPiece* ChessGame::createChessPiece(const char& abbrName, const int& rank, const int& file) {
-
-    ChessPiece* newPiece = nullptr;
-
-    switch(abbrName) {
-        case 'p':
-            newPiece = new Pawn(black, rank, file, *this);
-            break;
-        case 'P':
-            newPiece = new Pawn(white, rank, file, *this);
-            break;
-        case 'r':
-            newPiece = new Rook(black, rank, file, *this);
-            break;
-        case 'R':
-            newPiece = new Rook(white, rank, file, *this);
-            break;
-        case 'n':
-            newPiece = new Knight(black, rank, file, *this);
-            break;
-        case 'N':
-            newPiece = new Knight(white, rank, file, *this);
-            break;
-        case 'b':
-            newPiece = new Bishop(black, rank, file, *this);
-            break;
-        case 'B':
-            newPiece = new Bishop(white, rank, file, *this);
-            break;
-        case 'q':
-            newPiece = new Queen(black, rank, file, *this);
-            break;
-        case 'Q':
-            newPiece = new Queen(white, rank, file, *this);
-            break;
-        case 'k':
-            newPiece = new King(black, rank, file, *this);
-            blackKing = newPiece;
-            break;
-        case 'K':
-            newPiece = new King(white, rank, file, *this);
-            whiteKing = newPiece;
-            break;
-        default:
-            cout << "ERROR: Invalid chess piece - could not instantiate game.\n";
-            exit(1);
-    }
-    return newPiece;
 }
 
 void ChessGame::detectGameState() {
