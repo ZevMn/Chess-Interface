@@ -6,14 +6,13 @@
 
  /* 
   * Author: Zev Menachemson
-  * Last Edited: 10/12/2024
+  * Last Edited: 11/12/2024
   */
 
 #ifndef CHESSPIECE_H
 #define CHESSPIECE_H
 
 #include "Enums.h"
-#include <string>
 #include <vector>
 
 class ChessGame; // Forward declaration to prevent circular dependency
@@ -38,7 +37,7 @@ class ChessPiece {
         ChessPiece(PieceColour colour, PieceType type, int rank, int file, ChessGame& chessGame);
 
         /* 
-		 * Virtual destructor
+		 * Virtual default destructor
 		 */
         virtual ~ChessPiece();
 

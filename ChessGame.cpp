@@ -15,23 +15,16 @@ using namespace std;
 
 /* CONSTRUCTOR */
 ChessGame::ChessGame() : pieceAtDestinationSquare(false), whiteInCheck(false), blackInCheck(false), blackKing(nullptr), whiteKing(nullptr) {
-    for (int i=0; i<8; i++) {
-        for (int j=0; j<8; j++) {
-            chessBoard[i][j] = nullptr;
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            chessBoard[rank][file] = nullptr;
         }
     }
 }
 
 /* DESTRUCTOR */
 ChessGame::~ChessGame() {
-    for (int i=0; i<8; i++) {
-        for (int j=0; j<8; j++) {
-            if (chessBoard[i][j] != nullptr) {
-                delete chessBoard[i][j];
-                chessBoard[i][j] = nullptr;
-            }
-        }
-    }
+    cleanChessBoard();
 }
 
 /* GETTER FOR 'turn' */
@@ -41,65 +34,82 @@ PieceColour ChessGame::getTurn() {
 
 void ChessGame::loadState(const char* fenString) {
 
+    cleanChessBoard(); // Clear any previously loaded chess game
     endGame = false; // Indicates that a game is in progress
 
-    // Clean any previously loaded chess game
-    for (int i=0; i<8; i++) {
-        for (int j=0; j<8; j++) {
-            if (chessBoard[i][j] != nullptr) {
-                delete chessBoard[i][j];
-                chessBoard[i][j] = nullptr;
+    /* DECODE FEN STRING */
+    int i = 0;
+    decodePartOne(fenString, i); // PART 1: BOARD ARRANGEMENT
+    decodePartTwo(fenString, i); // PART 2: ACTIVE COLOUR
+    decodePartThree(fenString, i); // PART 3: CASTLING RIGHTS
+
+    i++;
+    if (fenString[i] != '\0') { // If full notation FEN string is input
+
+        decodePartFour(fenString, i); // PART 4: EN PASSANT SQUARES
+        decodePartFive(fenString, i); // PART 5: HALF-MOVE COUNTER
+        decodePartSix(fenString, i); // PART 6: FULL-MOVE COUNTER
+    }
+
+    gameLoaded = true;
+    cout << "A new board state is loaded!\n";
+    //printBoard();
+
+    // Simulate the opponent finishing their turn to detect if board loaded in a state of check/checkmate/stalemate/draw
+    turn = (turn == white ? black : white); 
+    detectGameState();
+    turn = (turn == white ? black : white);
+}
+
+void ChessGame::cleanChessBoard() {
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+
+            if (chessBoard[rank][file] != nullptr) {
+                delete chessBoard[rank][file];
+                chessBoard[rank][file] = nullptr;
             }
         }
     }
+}
 
-    // DECODE FEN STRING
-    // PART 1: BOARD ARRANGEMENT
-    // PART 2: ACTIVE COLOUR
-    // PART 3: CASTLING RIGHTS
-    // PART 4: EN PASSANT SQUARES
-    // PART 5: HALF-MOVE COUNTER
-    // PART 6: FULL-MOVE COUNTER
-
-    /* PART 1: BOARD ARRANGEMENT */
-    int rank = 7, file = 0; // Start at rank 8, file 1
+void ChessGame::decodePartOne(const char* fenString, int& i) {
+    int rank = 7, file = 0; // Start at 8th rank and the A-file
     
-    int i = 0;
     while (fenString[i] != ' ') { // Iterate through the FEN string until first blank space (end of part 1)
+        
         char currentCharacter = fenString[i];
 
         if (currentCharacter == '/') { // Move to next rank, reset file to 0
             rank--;
             file = 0;
         }
-
-        else if (currentCharacter > '0' && currentCharacter < '9') { // Insert 'X' for each empty square
+        else if (currentCharacter > '0' && currentCharacter < '9') { // Skip empty squares
             for (int empty = 0; empty < (currentCharacter - '0'); empty++) {
-                chessBoard[rank][file] = nullptr;
                 file++;
             }
         }
-
-        else { // Must be a pie>getAbbrName() ce as we are told that only valid FEN strings will be received as inputs
+        else { // Must be a piece as we are told that only valid FEN strings will be received as inputs
             chessBoard[rank][file] = createChessPiece(currentCharacter, rank, file);
             file++;
         }
         i++; // At the end of the loop, i will hold the position of the first blank space
-
     }
+}
 
-    /* PART 2: ACTIVE COLOUR */
+void ChessGame::decodePartTwo(const char* fenString, int& i) {
     i++;
     turn = (fenString[i] == 'w' ? white : black);
     i++; // i will hold the position of the second blank space
+}
 
-    /* PART 3: CASTLING RIGHTS */
+void ChessGame::decodePartThree(const char* fenString, int& i) {
     whiteCanCastleKingside = false;
     whiteCanCastleQueenside = false;
     blackCanCastleKingside = false;
     blackCanCastleQueenside = false;
 
-    i ++;
+    i++;
     while (fenString[i] != ' ') {
         if (fenString[i] == 'K') {
             whiteCanCastleKingside = true;
@@ -116,51 +126,41 @@ void ChessGame::loadState(const char* fenString) {
         // if fenString[i] = '-', then nothing happens
         i++; // At the end of the loop, i will hold the position of the third blank space
     }
+}
 
-    /* PART 4: EN PASSANT SQUARES */
-    i++;
-    if (fenString[i] != '\0') { // If the full FEN string is inputted
-        if (fenString[i] == '-') {
+void ChessGame::decodePartFour(const char* fenString, int& i) {
+    if (fenString[i] == '-') {
         i++;
-        }
-        else {
-            const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
-
-            int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
-
-            enPassantSquare[0] = temporaryEnPassantSquare[0];
-            enPassantSquare[1] = temporaryEnPassantSquare[1];
-
-            delete [] temporaryEnPassantSquare;
-            temporaryEnPassantSquare = nullptr;
-
-            i += 2; // i will hold the position of the fourth blank space
-        }
-
-        /* PART 5: HALF-MOVE COUNTER */
-        i++;
-        for (int count = 0; fenString[i] != ' '; count++) {
-            halfMoveCounter += (fenString[i]-'0') * pow(10, count);
-            i++; // At the end of the loop, i will hold the position of the fifth blank space
-        }
-
-        /* PART 6: FULL-MOVE COUNTER */
-        i++;
-        for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
-            fullMoveCounter += (fenString[i]-'0') * pow(10, count);
-            i++;
-        }
     }
-    
+    else {
+        const char enPassantCoord[2] = {(static_cast<char>(toupper(fenString[i]))), fenString[i+1]};
 
-    gameLoaded = true;
-    cout << "A new board state is loaded!\n";
-    //printBoard();
+        int* temporaryEnPassantSquare = coordToIndex(enPassantCoord);
 
-    // Simulate the opponent just finishing their turn in case the board loads in a state of check, checkmate, stalemate or a draw
-    turn = (turn == white ? black : white); 
-    detectGameState();
-    turn = (turn == white ? black : white);
+        enPassantSquare[0] = temporaryEnPassantSquare[0];
+        enPassantSquare[1] = temporaryEnPassantSquare[1];
+
+        delete [] temporaryEnPassantSquare;
+        temporaryEnPassantSquare = nullptr;
+
+        i += 2; // i will hold the position of the fourth blank space
+    }
+}
+
+void ChessGame::decodePartFive(const char* fenString, int& i) {
+    i++;
+    for (int count = 0; fenString[i] != ' '; count++) {
+        halfMoveCounter += (fenString[i]-'0') * pow(10, count);
+        i++; // At the end of the loop, i will hold the position of the fifth blank space
+    }
+}
+
+void ChessGame::decodePartSix(const char* fenString, int& i) {
+    i++;
+    for (int count = 0; fenString[i] != '\0'; count++) { // Loop until end of FEN string
+        fullMoveCounter += (fenString[i]-'0') * pow(10, count);
+        i++;
+    }
 }
 
 void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
@@ -192,7 +192,7 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
     if (checkMoveValid(originCoord, destinationCoord, stringCoord1, stringCoord2)) {
 
         // VALIDATE CASTLING
-        if (castlingStatus != regularMove) {
+        if (castlingStatus != regularMove) { // This will be set in checkMoveValid()
             castle(originCoord, destinationCoord);
             cout << turn << " castles " << castlingStatus << "\n";
             castlingStatus = regularMove;

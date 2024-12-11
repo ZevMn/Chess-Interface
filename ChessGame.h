@@ -1,14 +1,24 @@
-// Header file "ChessGame.h"
+/* 
+ * ChessGame.h - Header file for the ChessGame class 
+ * containing the chessBoard and logic representing
+ * a chess game.
+ */
+
+ /* 
+  * Author: Zev Menachemson
+  * Last Edited: 11/12/2024
+  */
 
 #ifndef CHESSGAME_H
 #define CHESSGAME_H
 
+// Forward declarations to prevent circular dependency
 class ChessGame;
 class ChessPiece;
 
 #include "ChessPiece.h"
-#include <string>
 
+// Global constants representing the standard size of a chess board
 const int ranks = 8, files = 8;
 
 
@@ -17,19 +27,41 @@ const int ranks = 8, files = 8;
 class ChessGame final {
 
     public:
+        /*
+		 * Default constructor to be called for creating an instance of a chess game.
+         * Initiates the ChessPiece pointers: 'blackKing' and 'whiteKing' to 'nullptr', 
+         * and the booleans: pieceAtDestinationSquare, whiteInCheck and blackInCheck to false.
+         * Initiates the chess board to a 2D array of 'nullptr's.
+		 */
         ChessGame();
+
+        /*
+         * Default destructor deletes any heap memory used by the remaining chess pieces 
+         * stored in the chess board.
+         */
         ~ChessGame();
 
+        /*
+		 * Decodes a FEN string into its six components describing the state of a chess game. 
+         * Initialises all the relevant parameters of that game. Detects any game in a state of 
+         * check, checkmate, stalemate or a draw and outputs that to the console.
+         * 
+         * FEN string components: PART 1: BOARD ARRANGEMENT
+         *                        PART 2: ACTIVE COLOUR
+         *                        PART 3: CASTLING RIGHTS
+         *                        PART 4: EN PASSANT SQUARES
+         *                        PART 5: HALF-MOVE COUNTER
+         *                        PART 6: FULL-MOVE COUNTER
+         *
+         * @param fenString The FEN string describing the state of the chess game to load
+		 */
         void loadState(const char* fenString);
+
         void submitMove(const char* stringCoord1, const char* stringCoord2);
 
         ChessPiece* chessBoard[ranks][files];
-
-        ChessPiece* getPiece(const int* coord);
-
-        PieceColour getTurn();
         
-        int* getEnPassantSquare();
+        int* getEnPassantSquare(); // Called in Pawn->isValidMovePattern()
         bool enPassantCapture = false;
 
         //void printBoard();
@@ -60,8 +92,18 @@ class ChessGame final {
         bool whiteCanCastleQueenside;
         bool blackCanCastleKingside;
         bool blackCanCastleQueenside;
+
+        PieceColour getTurn();
+        ChessPiece* getPiece(const int* coord);
         
         // Helper functions for loadState()
+        void cleanChessBoard();
+        void decodePartOne(const char* fenString, int& i);
+        void decodePartTwo(const char* fenString, int& i);
+        void decodePartThree(const char* fenString, int& i);
+        void decodePartFour(const char* fenString, int& i);
+        void decodePartFive(const char* fenString, int& i);
+        void decodePartSix(const char* fenString, int& i);
         ChessPiece* createChessPiece(const char& abbrName, const int& rank, const int& file);
 
         // Helper functions for submitMove()
