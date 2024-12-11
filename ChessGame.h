@@ -172,10 +172,74 @@ class ChessGame final {
 
         /************************** HELPER FUNCTIONS FOR submitMove() **************************/
 
+        /*
+         * Converts chess board coordinates from letter-integer format to zero-indexed integers.
+         *
+         * @param stringCoord A string literal giving the chess coordinates (e.g. "A1") of a square on the chess board.
+         * @return An integer array of length two containing zero-indexed coordinates of a piece on the chess board.
+         */
+        int* coordToIndex(const char* stringCoord);
+
+        /*
+         * Obtains a pointer to a chess piece at a given position on the chess board.
+         *
+         * @param coord An integer array of length two containing zero-indexed coordinates of a piece on the chess board.
+         * @return A pointer to the chess piece at the specified position on the chess board.
+         */
         ChessPiece* getPiece(const int* coord);
-        void detectGameState();
-        int* coordToIndex(const char* coord);
+
+        /*
+         * Determines whether a move is valid disregarding state of check.
+         *
+         * Checks whether: 1) The coordinates are valid
+         *                 2) A piece exists at the origin square
+         *                 3) The piece belongs to the active colour
+         *                 4) The piece is being moved
+         *                 5) There is a friendly piece at the destination square
+         *                 6) The player is attempting to castle (indicated by moving the king two squares along a rank)
+         *                 7) The movement pattern is valid for the specified piece
+         *                 8) The path is clear (unless the piece is a knight)
+         *
+         * @param originCoord An integer array of length two containing zero-indexed coordinates of the piece to move.
+         * @param destinationCoord An integer array of length two containing zero-indexed coordinates of the destination square.
+         * @param stringCoord1 The string literal letter-integer coordinates (e.g. "A1") of the piece to move.
+         * @param stringCoord2 The string literal letter-integer coordinates (e.g. "B2") of the destination square.
+         * 
+         * @return true if the move is valid disregarding state of check; false otherwise.
+         */
         bool checkMoveValid(const int* originCoord, const int* destinationCoord, const char* stringCoord1, const char* stringCoord2);
+        
+        /* HELPER FUNCTIONS FOR checkMoveValid() within submitMove() */
+
+        /*
+         * Determines whether given coordinates are in bounds.
+         *xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+         * Checks whether: 1) The coordinates are valid
+         *                 2) A piece exists at the origin square
+         *                 3) The piece belongs to the active colour
+         *                 4) The piece is being moved
+         *                 5) There is a friendly piece at the destination square
+         *                 6) The player is attempting to castle (indicated by moving the king two squares along a rank)
+         *                 7) The movement pattern is valid for the specified piece
+         *                 8) The path is clear (unless the piece is a knight)
+         *
+         * @param originCoord An integer array of length two containing zero-indexed coordinates of the piece to move.
+         * @param destinationCoord An integer array of length two containing zero-indexed coordinates of the destination square.
+         * @param stringCoord1 The string literal letter-integer coordinates (e.g. "A1") of the piece to move.
+         * @param stringCoord2 The string literal letter-integer coordinates (e.g. "B2") of the destination square.
+         * 
+         * @return true if the move is valid disregarding state of check; false otherwise.
+         */
+        bool checkCoordinatesValid(const int* originCoord, const int* destinationCoord);
+        bool checkPieceExists(ChessPiece* pieceAtOrigin, const char* stringCoord1);
+        bool checkCorrectTurn(ChessPiece* pieceAtOrigin);
+        bool checkPieceMoves(const int* originCoord, const int* destinationCoord);
+        bool checkNoFriendlyCapture(ChessPiece* pieceAtDestination);
+        bool checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord);
+        bool checkPathClear(const int* originCoord, const int* destinationCoord, const char* stringCoord2);
+
+
+        void detectGameState();
         void makeMove(const int* originCoord, const int* destinationCoord);
         void doCapture(ChessPiece* pieceToCapture);
         void switchTurn();
@@ -194,15 +258,6 @@ class ChessGame final {
         bool detectCheckmate(ChessPiece* king);
         bool pieceCanBlock(ChessPiece* king);
         bool attemptBlockCheck(ChessPiece* piece);
-
-        // Helper functions for checkMoveValid()
-        bool checkCorrectTurn(ChessPiece* pieceAtOrigin);
-        bool checkPieceExists(ChessPiece* pieceAtOrigin, const char* stringCoord1);
-        bool checkCoordinatesValid(const int* originCoord, const int* destinationCoord);
-        bool checkPieceMoves(const int* originCoord, const int* destinationCoord);
-        bool checkNoFriendlyCapture(ChessPiece* pieceAtDestination);
-        bool checkPathClear(const int* originCoord, const int* destinationCoord, const char* stringCoord2);
-        bool checkCastlingValid(CastlingStatus& castlingStatus, const int* originCoord, const int* destinationCoord);
 
         // Helper functions for detectCheck()
         ChessPiece* findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction);
