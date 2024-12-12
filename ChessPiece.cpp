@@ -6,7 +6,7 @@
 
  /* 
   * Author: Zev Menachemson
-  * Last Edited: 10/12/2024
+  * Last Edited: 12/12/2024
   */
 
 #include "ChessPiece.h"
@@ -24,7 +24,7 @@ using namespace std;
 ChessPiece::ChessPiece(PieceColour colour, PieceType type, int rank, int file, ChessGame& chessGame) 
 : colour(colour), type(type), rankIndex(rank), fileIndex(file), chessGame(chessGame) {}
 
-/* DESTRUCTOR */
+/* VIRTUAL DEFAULT DESTRUCTOR */
 ChessPiece::~ChessPiece() {}
 
 /* OVERLOADING THE << OPERATOR FOR 'ChessPiece*' */

@@ -1,12 +1,12 @@
 /* 
  * ChessGame.h - Header file for the ChessGame class 
  * containing the chessBoard and logic representing
- * a chess game.
+ * the chess game.
  */
 
  /* 
   * Author: Zev Menachemson
-  * Last Edited: 11/12/2024
+  * Last Edited: 12/12/2024
   */
 
 #ifndef CHESSGAME_H
@@ -301,6 +301,15 @@ class ChessGame final {
         bool checkPathClear(const int* originCoord, const int* destinationCoord, const char* stringCoord2);
 
         /*
+         * Outputs a generic move to the console stating that the attempted move
+         * is not legal.
+         * 
+         * @param pieceType The type of piece that an attempt was made to move.
+         * @param stringCoord2 The string literal letter-integer coordinates (e.g. "B2") of the destination square.
+         */
+        void generalCannotMoveOutput(const PieceType pieceType, const char* stringCoord2);
+
+        /*
          * Performs a castling move.
          *
          * @param originCoord An integer array of length two containing zero-indexed coordinates of the king to move.
@@ -369,22 +378,97 @@ class ChessGame final {
          */
         bool doesPieceSeeSquare(const int &rank, const int &file, const PieceColour &colour, const ChessPiece* nearestNeighbour, const Directions &direction);
 
-        /**/
-        ChessPiece* findNearestNeighbour(const int &rank, const int &file, const PieceColour &colour, const Directions &direction);
+        /* 
+         * Finds the nearest neighbouring chess piece relative to a given square in a given direction.
+         *
+         * @param rank A const reference to the rank of a given square on the chess board.
+         * @param file A const reference to the file of a given square on the chess board.
+         * @param direction A const reference to the direction along which to search for 
+         * the nearest neighbour relative to the given square.
+         * 
+         * @return A pointer to the nearest neighbour of a square in the specified direction (nullptr if none).
+         */
+        ChessPiece* findNearestNeighbour(const int &rank, const int &file, const Directions &direction);
 
-        void detectGameState();
-        void doCapture(ChessPiece* pieceToCapture);
-        void switchTurn();
+        /*
+         * Detects if a king or rook has moved this turn and toggles the flags that 
+         * indicate the castling rights of each colour.
+         *
+         * @param pieceAtOrigin A pointer to the chess piece occupying the origin square (nullptr if square is empty).
+         * @param originCoord An integer array of length two containing zero-indexed coordinates of the piece to move.
+         */
         void toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord);
-        void generalCannotMoveOutput(const PieceType pieceType, const char* stringCoord2);
 
+        /*
+         * Outputs piece capture message, deallocates heap memory if relevant and
+         * ensures no dangling pointers remain after en passant. This function is only
+         * ever called when pieceToCapture points to an enemy chess piece.
+         *
+         * @param pieceToCapture A pointer to the chess piece to capture.
+         */
+        void doCapture(ChessPiece* pieceToCapture);
+
+        /*
+         * Deallocates heap memory assigned to a piece.
+         *
+         * @param pieceToDelete A reference to the piece to be deleted from heap memory.
+         */
+        void deletePiece(ChessPiece* &pieceToDelete);
+
+        /*
+         * Determines the current state of the chess game and detects any occurance of:
+         * check, checkmate, stalemate or a draw (by the 50-move draw rule). Outputs an
+         * appropriate message to the console if such a state is detected.
+         */
+        void detectGameState();
+
+        /*
+         * Detects whether a given king is in checkmate.
+         * 
+         * @param king The king for which to detect whether it is in checkmate.
+         * 
+         * @return true if the king is in checkmate; false otherwise.
+         */
+        bool detectCheckmate(ChessPiece* king);
+
+        /*
+         * Detects whether there are any safe squares that a king (in a state of check) can move to.
+         *
+         * @param king The king for which to detect whether there are any safe squares for it to move to.
+         * 
+         * @return true if there exists at least one safe square for the king to move to; false otherwise.
+         */
         bool anySafeSquares(ChessPiece* king);
+
+        /*
+         * Detects whether there exists any piece that can block a check on its king.
+         *
+         * @param king The king for which to detect whether any piece can block a check.
+         * 
+         * @return true if there exists a piece that can block check; false otherwise.
+         */
+        bool pieceCanBlock(ChessPiece* king);
+
+        /*
+         * Attempts every possible move for a given piece to determine if that piece can block a check on its king.
+         *
+         * @param piece The piece to attempt every move to determine whether it can block check.
+         * 
+         * @return true if a given piece can block check; false otherwise.
+         */
+        bool attemptBlockCheck(ChessPiece* piece);
+
+        /*
+         * Determines whether the colour next to move has any legal moves.
+         *
+         * @return true if there exists a piece with a legal move; false otherwise.
+         */
         bool anyPiecesCanMove();
 
-        void deletePiece(ChessPiece* &pieceToDelete);
-        bool detectCheckmate(ChessPiece* king);
-        bool pieceCanBlock(ChessPiece* king);
-        bool attemptBlockCheck(ChessPiece* piece);
+        /*
+         * Switches the active colour between white and black.
+         */
+        void switchTurn();
 };
 
 #endif

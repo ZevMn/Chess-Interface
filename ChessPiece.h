@@ -6,7 +6,7 @@
 
  /* 
   * Author: Zev Menachemson
-  * Last Edited: 11/12/2024
+  * Last Edited: 12/12/2024
   */
 
 #ifndef CHESSPIECE_H
