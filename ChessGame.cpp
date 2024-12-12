@@ -223,15 +223,15 @@ void ChessGame::submitMove(const char* stringCoord1, const char* stringCoord2) {
         return;
     }
 
-    // Convert string literal chess coordinates to integers (zero indexed)
+    // CONVERT STRING LITERAL CHESS COORDINATES TO INTEGERS (ZERO INDEXED)
     int* originCoord = coordToIndex(stringCoord1);
     int* destinationCoord = coordToIndex(stringCoord2);
 
-    // Obtain pointers to the pieces at origin and destination squares
+    // OBTAIN POINTERS TO THE PIECES AT THE ORIGIN AND DESTINATION SQUARES
     ChessPiece* pieceAtOrigin = getPiece(originCoord);
     ChessPiece* pieceAtDestination = getPiece(destinationCoord);
 
-    // Indicate whether the destination square is occupied
+    // INDICATE WHETHER THE DESTINATION SQUARE IS OCCUPIED
     if (pieceAtDestination != nullptr) {
         pieceAtDestinationSquare = true;
     }
@@ -528,6 +528,19 @@ void ChessGame::castle(const int* originCoord, const int* destinationCoord) {
     makeMove(rookOriginCoord, rookDestinationCoord); // Move the rook
 }
 
+void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
+
+    if (chessBoard[originCoord[0]][originCoord[1]] != nullptr) { // Safety check
+
+        chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
+        chessBoard[originCoord[0]][originCoord[1]] = nullptr;
+
+        if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
+            (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
+        }
+    }
+}
+
 bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationCoord) {
 
     makeMove(originCoord, destinationCoord);
@@ -537,7 +550,7 @@ bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationC
     if ((turn == white && whiteInCheck) || (turn == black && blackInCheck)) {
         if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
             makeMove(destinationCoord, originCoord); // UNDO MOVE
-            cout << "ERROR: Cannot make move - you are in check.";
+            cout << "Cannot make move - you are in check.";
             return false;
         }
         else {
@@ -548,11 +561,217 @@ bool ChessGame::regularMoveLogic(const int* originCoord, const int* destinationC
     else {
         if (detectCheck(currentKing->getRankIndex(), currentKing->getFileIndex(), currentKing->getColour(), true)) {
             makeMove(destinationCoord, originCoord); // UNDO MOVE
-            cout << "ERROR: Cannot make move - you cannot move into check";
+            cout << "Cannot make move - you cannot move into check";
             return false;
         }
     } 
     return true;
+}
+
+bool ChessGame::detectCheck(const int &rank, const int &file, const PieceColour &colour, const bool lookingAtKing) {
+
+    bool detected = false;
+    
+    if (detectKnightInRange(rank, file, colour)) {
+        detected = true;
+    }
+
+    Directions directions[] = {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
+
+    for (const Directions& direction : directions) {
+        if (doesPieceSeeSquare(rank, file, colour, findNearestNeighbour(rank, file, colour, direction), direction)) {
+            detected = true;
+            break;
+        }
+    }
+
+    if (lookingAtKing) {
+        if (detected) {
+            colour == white ? whiteInCheck = true : blackInCheck = true;
+        }
+        else {
+            colour == white ? whiteInCheck = false : blackInCheck = false;
+        }
+    }
+
+    return detected;
+}
+
+bool ChessGame::detectKnightInRange(const int &rank, const int &file, const PieceColour &colour) {
+
+    int knightMoves[8][2] = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
+
+    for (int move = 0; move < 8; move++) {
+        int newRank = rank + knightMoves[move][0];
+        int newFile = file + knightMoves[move][1];
+
+        if ((newRank >= 0) && (newRank < 8) && (newFile >= 0) && (newFile < 8)) { // Boundary checks
+            ChessPiece* possibleKnight = chessBoard[newRank][newFile];
+            if ((possibleKnight != nullptr) && (possibleKnight->getType() == knight) && (possibleKnight->getColour() != colour)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool ChessGame::doesPieceSeeSquare(const int &rank, const int &file, const PieceColour &colour, const ChessPiece* nearestNeighbour, const Directions& direction) {
+
+    if (nearestNeighbour != nullptr) {
+        if (colour == nearestNeighbour->getColour()) { // Check if piece is friendly
+            return false;
+        }
+
+        PieceType pieceName = nearestNeighbour->getType();
+
+        // A queen can see infinitely far in all directions
+        if (pieceName == queen) {
+            return true;
+        }
+
+        // A king can see one square in any direction
+        if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - rank), abs(nearestNeighbour->getFileIndex() - file)) == 1)) {
+            return true;
+        }
+
+        // A pawn can see one square diagonally
+        if ((pieceName == pawn)) {
+            if (((colour == white) && (nearestNeighbour->getRankIndex() == rank + 1)) ||
+                ((colour == black) && (nearestNeighbour->getRankIndex() == rank - 1))) {
+                if (abs(nearestNeighbour->getFileIndex() - file) == 1) {
+                    return true;
+                }
+            }
+        }
+
+        switch (direction) {
+            case leftRank:
+            case rightRank:
+            case upFile:
+            case downFile:
+                if (pieceName == rook) { // rooks can see infinitely far along ranks and files
+                    return true;
+                }
+                break;
+            case plusplus:
+            case minusminus:
+            case plusminus:
+            case minusplus:
+                if (pieceName == bishop) { // bishops can see infinitely far along diagonals
+                    return true;
+                }
+                break;
+            default:
+                return false;
+        }
+    }
+    return false;
+}
+
+ChessPiece* ChessGame::findNearestNeighbour(const int &rank, const int &file, const PieceColour &colour, const Directions &direction) {
+
+    switch (direction) {
+        case leftRank:
+            if (file == 0) {
+                return nullptr;
+                break;
+            }
+            for (int newFile = file - 1; newFile >= 0; newFile--) {
+                if (chessBoard[rank][newFile] != nullptr) {
+                    return chessBoard[rank][newFile];
+                }
+            }
+            break;
+
+        case rightRank:
+            if (file == 7) {
+            return nullptr;
+            break;
+            }
+            for (int newFile = file + 1; newFile < 8; newFile++) {
+                if (chessBoard[rank][newFile] != nullptr) {
+                    return chessBoard[rank][newFile];
+                }
+            }
+            break;
+
+        case upFile:
+            if (rank == 7) {
+                return nullptr;
+                break;
+            }
+            for (int newRank = rank + 1; newRank < 8; newRank++) {
+                if (chessBoard[newRank][file] != nullptr) {
+                    return chessBoard[newRank][file];
+                }
+            }
+            break;
+
+        case downFile:
+            if (rank == 0) {
+                return nullptr;
+                break;
+            }
+            for (int newRank = rank - 1; newRank >= 0; newRank--) {
+                if (chessBoard[newRank][file] != nullptr) {
+                    return chessBoard[newRank][file];
+                }
+            }
+            break;
+
+        case plusplus:
+            if (rank == 7 || file == 7) {
+                return nullptr;
+                break;
+            }
+            for (int i=1; i+max(rank, file) < 8; i++) {
+                if (chessBoard[rank+i][file+i] != nullptr) {
+                    return chessBoard[rank+i][file+i];
+                }
+            }
+            break;
+
+        case minusminus:
+            if (rank == 0 || file == 0) {
+                return nullptr;
+                break;
+            }
+            for (int i=1; min(rank, file)-i >= 0; i++) {
+                if (chessBoard[rank-i][file-i] != nullptr) {
+                    return chessBoard[rank-i][file-i];
+                }
+            }
+            break;
+
+        case plusminus:
+            if (rank == 7 || file == 0) {
+                return nullptr;
+                break;
+            }
+            for (int i=1; (rank + i < 8) && (file - i >= 0); i++) {
+                if (chessBoard[rank+i][file-i] != nullptr) {
+                    return chessBoard[rank+i][file-i];
+                }
+            }
+            break;
+
+        case minusplus:
+            if (rank == 0 || file == 7) {
+                return nullptr;
+                break;
+            }
+            for (int i=1; (rank - i >= 0) && (file + i < 8); i++) {
+                if (chessBoard[rank-i][file+i] != nullptr) {
+                    return chessBoard[rank-i][file+i];
+                }
+            }
+            break;
+
+        default:
+            cout << "ERROR: Please input a valid direction.\n";
+            return nullptr;
+    }
+    return nullptr;
 }
 
 void ChessGame::toggleCastlingFlags(const ChessPiece* pieceAtOrigin, const int* originCoord) {
@@ -691,19 +910,6 @@ void ChessGame::generalCannotMoveOutput(const PieceType pieceType, const char* s
     cout << turn << "'s " << pieceType << " cannot move to " << stringCoord2 << "!\n";
 }
 
-void ChessGame::makeMove(const int* originCoord, const int* destinationCoord) {
-
-    if (chessBoard[originCoord[0]][originCoord[1]] != nullptr) { // Safety check
-
-        chessBoard[destinationCoord[0]][destinationCoord[1]] = chessBoard[originCoord[0]][originCoord[1]]; // Make the move
-        chessBoard[originCoord[0]][originCoord[1]] = nullptr;
-
-        if (chessBoard[destinationCoord[0]][destinationCoord[1]]->getType() == king) {
-            (turn == white ? whiteKing : blackKing) = chessBoard[destinationCoord[0]][destinationCoord[1]];
-        }
-    }
-}
-
 void ChessGame::doCapture(ChessPiece* pieceToCapture) {
     cout << " taking " << pieceToCapture->getColour() << "'s " << pieceToCapture->getType();
 
@@ -735,35 +941,6 @@ void ChessGame::switchTurn() {
 void ChessGame::deletePiece(ChessPiece* &pieceToDelete) {
     delete pieceToDelete;
     pieceToDelete = nullptr;
-}
-
-bool ChessGame::detectCheck(int rank, int file, PieceColour colour, bool lookingAtKing) {
-
-    bool detected = false;
-    
-    if (detectKnightInRange(rank, file, colour)) {
-        detected = true;
-    }
-
-    Directions directions[] = {leftRank, rightRank, upFile, downFile, plusplus, minusminus, plusminus, minusplus};
-
-    for (const Directions& direction : directions) {
-        if (doesPieceSeeSquare(rank, file, colour, findNearestNeighbour(rank, file, colour, direction), direction)) {
-            detected = true;
-            break;
-        }
-    }
-
-    if (lookingAtKing) {
-        if (detected) {
-            colour == white ? whiteInCheck = true : blackInCheck = true;
-        }
-        else {
-            colour == white ? whiteInCheck = false : blackInCheck = false;
-        }
-    }
-
-    return detected;
 }
 
 bool ChessGame::pieceCanBlock(ChessPiece* king) {
@@ -823,182 +1000,6 @@ bool ChessGame::attemptBlockCheck(ChessPiece* piece) {
                     makeMove(destinationCoords, originCoords);    
                 }      
             }
-        }
-    }
-    return false;
-}
-
-ChessPiece* ChessGame::findNearestNeighbour(int rank, int file, PieceColour colour, Directions direction) {
-
-    switch (direction) {
-        case leftRank:
-            if (file == 0) {
-                return nullptr;
-                break;
-            }
-            for (int newFile = file - 1; newFile >= 0; newFile--) {
-                if (chessBoard[rank][newFile] != nullptr) {
-                    return chessBoard[rank][newFile];
-                }
-            }
-            break;
-
-        case rightRank:
-            if (file == 7) {
-            return nullptr;
-            break;
-            }
-            for (int newFile = file + 1; newFile < 8; newFile++) {
-                if (chessBoard[rank][newFile] != nullptr) {
-                    return chessBoard[rank][newFile];
-                }
-            }
-            break;
-
-        case upFile:
-            if (rank == 7) {
-                return nullptr;
-                break;
-            }
-            for (int newRank = rank + 1; newRank < 8; newRank++) {
-                if (chessBoard[newRank][file] != nullptr) {
-                    return chessBoard[newRank][file];
-                }
-            }
-            break;
-
-        case downFile:
-            if (rank == 0) {
-                return nullptr;
-                break;
-            }
-            for (int newRank = rank - 1; newRank >= 0; newRank--) {
-                if (chessBoard[newRank][file] != nullptr) {
-                    return chessBoard[newRank][file];
-                }
-            }
-            break;
-
-        case plusplus:
-            if (rank == 7 || file == 7) {
-                return nullptr;
-                break;
-            }
-            for (int i=1; i+max(rank, file) < 8; i++) {
-                if (chessBoard[rank+i][file+i] != nullptr) {
-                    return chessBoard[rank+i][file+i];
-                }
-            }
-            break;
-
-        case minusminus:
-            if (rank == 0 || file == 0) {
-                return nullptr;
-                break;
-            }
-            for (int i=1; min(rank, file)-i >= 0; i++) {
-                if (chessBoard[rank-i][file-i] != nullptr) {
-                    return chessBoard[rank-i][file-i];
-                }
-            }
-            break;
-
-        case plusminus:
-            if (rank == 7 || file == 0) {
-                return nullptr;
-                break;
-            }
-            for (int i=1; (rank + i < 8) && (file - i >= 0); i++) {
-                if (chessBoard[rank+i][file-i] != nullptr) {
-                    return chessBoard[rank+i][file-i];
-                }
-            }
-            break;
-
-        case minusplus:
-            if (rank == 0 || file == 7) {
-                return nullptr;
-                break;
-            }
-            for (int i=1; (rank - i >= 0) && (file + i < 8); i++) {
-                if (chessBoard[rank-i][file+i] != nullptr) {
-                    return chessBoard[rank-i][file+i];
-                }
-            }
-            break;
-
-        default:
-            cout << "ERROR: Please input a valid direction.\n";
-            return nullptr;
-    }
-    return nullptr;
-}
-
-bool ChessGame::detectKnightInRange(int rank, int file, PieceColour colour) {
-
-    int knightMoves[8][2] = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
-
-    for (int move = 0; move < 8; move++) {
-        int newRank = rank + knightMoves[move][0];
-        int newFile = file + knightMoves[move][1];
-
-        if ((newRank >= 0) && (newRank < 8) && (newFile >= 0) && (newFile < 8)) { // Boundary checks
-            ChessPiece* possibleKnight = chessBoard[newRank][newFile];
-            if ((possibleKnight != nullptr) && (possibleKnight->getType() == knight) && (possibleKnight->getColour() != colour)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool ChessGame::doesPieceSeeSquare(int rank, int file, PieceColour colour, ChessPiece* nearestNeighbour, const Directions& direction) {
-
-    if (nearestNeighbour != nullptr) {
-        if (colour == nearestNeighbour->getColour()) { // Check if piece is friendly
-            return false;
-        }
-
-        PieceType pieceName = nearestNeighbour->getType();
-
-        if (pieceName == queen) {
-            return true;
-        }
-
-        if ((pieceName == king) && (min(abs(nearestNeighbour->getRankIndex() - rank), abs(nearestNeighbour->getFileIndex() - file)) == 1)) {
-            return true;
-        }
-
-        if ((pieceName == pawn)) {
-            if (((colour == white) && (nearestNeighbour->getRankIndex() == rank + 1)) ||
-                ((colour == black) && (nearestNeighbour->getRankIndex() == rank - 1))) {
-                if (abs(nearestNeighbour->getFileIndex() - file) == 1) {
-                    return true;
-                }
-            }
-        }
-
-        switch (direction) {
-            case leftRank:
-            case rightRank:
-            case upFile:
-            case downFile:
-                if (pieceName == rook) {
-                    return true;
-                }
-                break;
-
-            case plusplus:
-            case minusminus:
-            case plusminus:
-            case minusplus:
-                if (pieceName == bishop) {
-                    return true;
-                }
-                break;
-
-            default:
-                return false;
         }
     }
     return false;
